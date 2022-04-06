@@ -1,0 +1,691 @@
+
+	Make starting at Wed Apr  6 14:45:44 EDT 2022
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+*** Doing "imboot" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/imake/imboot.sh -t EPIC 
+
+
+
+
+*** Doing "mrmake  clean" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/make.Linux  clean 
+/bin/rm -f -r ./EPIC+
+/bin/rm -f *.epic *.host.c *.host.cpp *.tgt.c \
+	    *.global.h *.allcv.h \
+		*.tgtex.h *.hostdecl.h *.tgtdecl.h *.exportstr.h \
+		*.runtime.h *.ext.h *.host.map \
+		cvinit.in predownload.in
+/bin/rm -f *.epicplus *.cvinit.in *.predownload.in *.tgt_hdr.h \
+		*.allcv_hwdefs.h *.allcv_simdefs.h \
+		*.exportstr_hwdefs.h *.exportstr_simdefs.h \
+		*.hostdecl_hwdefs.h *.hostdecl_simdefs.h \
+		*.tgtdecl_hwdefs.h *.tgtdecl_simdefs.h \
+		*.tgtex_hwdefs.h *.tgtex_simdefs.h *.tgt_hdr.h
+/bin/rm -f vsasl3dflex04.cnvendian.input.c vsasl3dflex04.cnvendian.input.i vsasl3dflex04.cnvendian.private.h vsasl3dflex04.cnvendian.globalvar.h vsasl3dflex04.cnvendian.c vsasl3dflex04.cnvendian.api.h vsasl3dflex04.cvcopy.c
+
+
+
+
+
+/export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir succeeded.
+
+   Total makes to do:   4
+   Succeeded:           1
+   Failed:              0
+   Yet to build:        3
+   Percent complete:    25%
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+*** Doing "imboot" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/host ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/imake/imboot.sh -t GCC 
+
+
+
+
+*** Doing "mrmake  clean" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/host ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/make.Linux  clean 
+/bin/rm -f *.mi *.o
+/bin/rm -f *.o-hh *.o-hhts
+/bin/rm -f vsasl3dflex04
+
+
+
+
+
+/export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/host succeeded.
+
+   Total makes to do:   4
+   Succeeded:           2
+   Failed:              0
+   Yet to build:        2
+   Percent complete:    50%
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+*** Doing "imboot" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/sim_linux ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/imake/imboot.sh -t GCC_SIM_LINUX 
+
+
+
+
+*** Doing "mrmake  clean" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/sim_linux ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/make.Linux  clean 
+/bin/rm -f *.mi *.o
+/bin/rm -f *.o-hs *.o-ts
+/bin/rm -f vsasl3dflex04.host
+/bin/rm -f vsasl3dflex04.tgt
+
+
+
+
+
+/export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/sim_linux succeeded.
+
+   Total makes to do:   4
+   Succeeded:           3
+   Failed:              0
+   Yet to build:        1
+   Percent complete:    75%
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+*** Doing "imboot" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/tgt_mgd ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/imake/imboot.sh -t GCC_AGP 
+
+
+
+
+*** Doing "mrmake  clean" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/tgt_mgd ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/make.Linux  clean 
+/bin/rm -f *.o *.o-th
+/bin/rm -f vsasl3dflex04.psd.mgd
+
+
+
+
+
+/export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/tgt_mgd succeeded.
+
+   Total makes to do:   4
+   Succeeded:           4
+   Failed:              0
+   Yet to build:        0
+   Percent complete:    100%
+
+Target compile files missing: /ESE_DV26.0_R02/3p_windriver/gppve/inst. Skipped tgt_ice directory
+	Make starting at Wed Apr  6 14:45:54 EDT 2022
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+*** Doing "imboot" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/imake/imboot.sh -t EPIC 
+
+
+
+
+*** Doing "mrmake  hw" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/make.Linux  hw 
+==========================================================
+   Processing vsasl3dflex04
+==========================================================
+/bin/rm -f vsasl3dflex04.epic vsasl3dflex04.host.c vsasl3dflex04.host.cpp vsasl3dflex04.tgt.c \
+		vsasl3dflex04.global.h vsasl3dflex04.allcv.h \
+		vsasl3dflex04.tgtex.h vsasl3dflex04.hostdecl.h vsasl3dflex04.tgtdecl.h vsasl3dflex04.exportstr.h \
+		vsasl3dflex04.runtime.h vsasl3dflex04.ext.h vsasl3dflex04.host.map \
+		cvinit.in predownload.in
+/ESE_DV26.0_R02/psd/bin/ec  -z -+  -I. -I/ESE_DV26.0_R02/psd/include -I/ESE_DV26.0_R02/psd/include/private -I/ESE_DV26.0_R02/psd/include/private/support -I/ESE_DV26.0_R02/psd/psdsource -I/ESE_DV26.0_R02/lx/em/include -I/ESE_DV26.0_R02/lx/include -I/ESE_DV26.0_R02/host/foundation-libs/CnvEndianLib/host_static -I/ESE_DV26.0_R02/host/include -I/ESE_DV26.0_R02/mgd/include -I/ESE_DV26.0_R02/vre/support vsasl3dflex04.e
+Running EPIC 1.2 compiler (30/Jan/2013)...
+PSD top =  /ESE_DV26.0_R02/psd
+vsasl3dflex04.e: Running EPIC 3.4 preprocessor (Feb 28 2018 11:06:49)...
+This is being compiled as a Research PSD.
+line 309: Warning: CV changed from 'double' to 'float': myflip_rf2
+line 310: Warning: CV changed from 'double' to 'float': start_rf2
+line 370: Warning: CV changed from 'double' to 'float': vsi_Gmax
+line 371: Warning: CV changed from 'double' to 'float': vsi_Gcontrol
+line 372: Warning: CV changed from 'double' to 'float': vel_target
+line 379: Warning: CV changed from 'double' to 'float': vsi_RFmax
+line 382: Warning: CV changed from 'double' to 'float': vsi_RFmax_calstep
+line 383: Warning: CV changed from 'double' to 'float': my_maxB1Seq
+line 398: Warning: CV changed from 'double' to 'float': vsi_velocity
+line 402: Warning: CV changed from 'double' to 'float': ArtSup_Gmax
+line 403: Warning: CV changed from 'double' to 'float': ArtSup_B1max
+line 431: Warning: CV changed from 'double' to 'float': area_gzrf1
+line 432: Warning: CV changed from 'double' to 'float': area_gzrf1r
+line 439: Warning: CV changed from 'double' to 'float': Kmax
+line 440: Warning: CV changed from 'double' to 'float': deltaK
+line 490: Warning: CV changed from 'double' to 'float': area_gzBSOrfspoiler
+EPIC preprocessor completed with 0 errors in 220.121 ms.
+/bin/touch vsasl3dflex04.epic
+==========================================================
+   Generating CV endian conversion code
+==========================================================
+/bin/rm -f vsasl3dflex04.cnvendian.input.c vsasl3dflex04.cnvendian.input.i vsasl3dflex04.cnvendian.private.h vsasl3dflex04.cnvendian.globalvar.h vsasl3dflex04.cnvendian.c vsasl3dflex04.cnvendian.api.h
+/ESE_DV26.0_R02/psd/bin/createCnvEndianInput vsasl3dflex04.cnvendian.input.c \
+		vsasl3dflex04.global.h vsasl3dflex04.allcv.h vsasl3dflex04.tgtex.h
+/ESE_DV26.0_R02/3p/endian_converter/endian_converter -i vsasl3dflex04.cnvendian.input.c -h vsasl3dflex04.cnvendian.private.h -ha vsasl3dflex04.cnvendian.api.h -hg vsasl3dflex04.cnvendian.globalvar.h -o vsasl3dflex04.cnvendian.c  -I. -I/ESE_DV26.0_R02/psd/include -I/ESE_DV26.0_R02/psd/include/private -I/ESE_DV26.0_R02/psd/include/private/support -I/ESE_DV26.0_R02/psd/psdsource -I/ESE_DV26.0_R02/lx/em/include -I/ESE_DV26.0_R02/lx/include -I/ESE_DV26.0_R02/host/foundation-libs/CnvEndianLib/host_static -I/ESE_DV26.0_R02/host/include -I/ESE_DV26.0_R02/mgd/include -I/ESE_DV26.0_R02/vre/support -m32          -DHOST_TGT     -DMGD_IF     -DLX_ENBLpopup     -DPSD_HW  -pre cv_cnv_endian_ -no_inc
+
+***** Generating Endian Conversion Files...
+
+	/ESE_DV26.0_R02/3p_osi/gnudev_host/inst/bin/x86_64-unknown-linux-gnu-gcc -E -P -o vsasl3dflex04.cnvendian.input.i vsasl3dflex04.cnvendian.input.c  -I. -I/ESE_DV26.0_R02/psd/include -I/ESE_DV26.0_R02/psd/include/private -I/ESE_DV26.0_R02/psd/include/private/support -I/ESE_DV26.0_R02/psd/psdsource -I/ESE_DV26.0_R02/lx/em/include -I/ESE_DV26.0_R02/lx/include -I/ESE_DV26.0_R02/host/foundation-libs/CnvEndianLib/host_static -I/ESE_DV26.0_R02/host/include -I/ESE_DV26.0_R02/mgd/include -I/ESE_DV26.0_R02/vre/support -m32 -DHOST_TGT -DMGD_IF -DLX_ENBLpopup -DPSD_HW -UIMAKE_NONE
+
+	/ESE_DV26.0_R02/vendor/ruby_linux/bin/ruby -I/ESE_DV26.0_R02/vendor/ruby_linux/lib/ruby/site_ruby/1.6 -I/ESE_DV26.0_R02/3p/endian_converter  /ESE_DV26.0_R02/3p/endian_converter/endian_converter.rb -i vsasl3dflex04.cnvendian.input.i  -h vsasl3dflex04.cnvendian.private.h -ha vsasl3dflex04.cnvendian.api.h -hg vsasl3dflex04.cnvendian.globalvar.h -o vsasl3dflex04.cnvendian.c -pre cv_cnv_endian_ -no_inc
+
+***** Endian Conversion Files Created
+==========================================================
+   Generating cvcopy functions
+==========================================================
+/bin/rm -f vsasl3dflex04.cvcopy.c
+/ESE_DV26.0_R02/psd/bin/contigCVs vsasl3dflex04 vsasl3dflex04.cvcopy.c vsasl3dflex04.allcv.h vsasl3dflex04.tgtex.h
+
+
+
+
+
+/export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir succeeded.
+
+   Total makes to do:   4
+   Succeeded:           1
+   Failed:              0
+   Yet to build:        3
+   Percent complete:    25%
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+*** Doing "imboot" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/host ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/imake/imboot.sh -t GCC 
+
+
+
+
+*** Doing "mrmake  hw" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/host ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/make.Linux  hw 
+/bin/rm -f vsasl3dflex04.host.o-hh
+/ESE_DV26.0_R02/3p_osi/gnudev_host/inst/bin/g++ -c -o vsasl3dflex04.host.o-hh ../vsasl3dflex04.host.cpp  -I.. -I/ESE_DV26.0_R02/psd/include -I/ESE_DV26.0_R02/psd/include/private -I/ESE_DV26.0_R02/psd/include/private/support -I/ESE_DV26.0_R02/psd/psdsource -I/ESE_DV26.0_R02/lx/em/include -I/ESE_DV26.0_R02/lx/include -I/ESE_DV26.0_R02/host/foundation-libs/CnvEndianLib/host_static -I/ESE_DV26.0_R02/host/include -I/ESE_DV26.0_R02/mgd/include -I/ESE_DV26.0_R02/vre/support -I/ESE_DV26.0_R02/3p_osi/gnudev_host/inst/ge/sys-root/usr/include/libxml2 -I/ESE_DV26.0_R02/mxutil/include      -m32     -g          -Wall   -DHOST_TGT -DMGD_IF -DLX_ENBLpopup -DPSD_HW -UIMAKE_PSDCPPSUFFIXRULES
+
+
+
+
+
+/export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/host failed.
+
+   Total makes to do:   4
+   Succeeded:           1
+   Failed:              1
+   Yet to build:        3
+   Percent complete:    25%
+
+	Make starting at Wed Apr  6 14:46:18 EDT 2022
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+*** Doing "imboot" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/imake/imboot.sh -t EPIC 
+
+
+
+
+*** Doing "mrmake  clean" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/make.Linux  clean 
+/bin/rm -f -r ./EPIC+
+/bin/rm -f *.epic *.host.c *.host.cpp *.tgt.c \
+	    *.global.h *.allcv.h \
+		*.tgtex.h *.hostdecl.h *.tgtdecl.h *.exportstr.h \
+		*.runtime.h *.ext.h *.host.map \
+		cvinit.in predownload.in
+/bin/rm -f *.epicplus *.cvinit.in *.predownload.in *.tgt_hdr.h \
+		*.allcv_hwdefs.h *.allcv_simdefs.h \
+		*.exportstr_hwdefs.h *.exportstr_simdefs.h \
+		*.hostdecl_hwdefs.h *.hostdecl_simdefs.h \
+		*.tgtdecl_hwdefs.h *.tgtdecl_simdefs.h \
+		*.tgtex_hwdefs.h *.tgtex_simdefs.h *.tgt_hdr.h
+/bin/rm -f vsasl3dflex04.cnvendian.input.c vsasl3dflex04.cnvendian.input.i vsasl3dflex04.cnvendian.private.h vsasl3dflex04.cnvendian.globalvar.h vsasl3dflex04.cnvendian.c vsasl3dflex04.cnvendian.api.h vsasl3dflex04.cvcopy.c
+
+
+
+
+
+/export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir succeeded.
+
+   Total makes to do:   4
+   Succeeded:           1
+   Failed:              0
+   Yet to build:        3
+   Percent complete:    25%
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+*** Doing "imboot" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/host ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/imake/imboot.sh -t GCC 
+
+
+
+
+*** Doing "mrmake  clean" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/host ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/make.Linux  clean 
+/bin/rm -f *.mi *.o
+/bin/rm -f *.o-hh *.o-hhts
+/bin/rm -f vsasl3dflex04
+
+
+
+
+
+/export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/host succeeded.
+
+   Total makes to do:   4
+   Succeeded:           2
+   Failed:              0
+   Yet to build:        2
+   Percent complete:    50%
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+*** Doing "imboot" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/sim_linux ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/imake/imboot.sh -t GCC_SIM_LINUX 
+
+
+
+
+*** Doing "mrmake  clean" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/sim_linux ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/make.Linux  clean 
+/bin/rm -f *.mi *.o
+/bin/rm -f *.o-hs *.o-ts
+/bin/rm -f vsasl3dflex04.host
+/bin/rm -f vsasl3dflex04.tgt
+
+
+
+
+
+/export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/sim_linux succeeded.
+
+   Total makes to do:   4
+   Succeeded:           3
+   Failed:              0
+   Yet to build:        1
+   Percent complete:    75%
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+*** Doing "imboot" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/tgt_mgd ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/imake/imboot.sh -t GCC_AGP 
+
+
+
+
+*** Doing "mrmake  clean" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/tgt_mgd ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/make.Linux  clean 
+/bin/rm -f *.o *.o-th
+/bin/rm -f vsasl3dflex04.psd.mgd
+
+
+
+
+
+/export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/tgt_mgd succeeded.
+
+   Total makes to do:   4
+   Succeeded:           4
+   Failed:              0
+   Yet to build:        0
+   Percent complete:    100%
+
+Target compile files missing: /ESE_DV26.0_R02/3p_windriver/gppve/inst. Skipped tgt_ice directory
+	Make starting at Wed Apr  6 14:46:28 EDT 2022
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+*** Doing "imboot" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/imake/imboot.sh -t EPIC 
+
+
+
+
+*** Doing "mrmake  hw" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/make.Linux  hw 
+==========================================================
+   Processing vsasl3dflex04
+==========================================================
+/bin/rm -f vsasl3dflex04.epic vsasl3dflex04.host.c vsasl3dflex04.host.cpp vsasl3dflex04.tgt.c \
+		vsasl3dflex04.global.h vsasl3dflex04.allcv.h \
+		vsasl3dflex04.tgtex.h vsasl3dflex04.hostdecl.h vsasl3dflex04.tgtdecl.h vsasl3dflex04.exportstr.h \
+		vsasl3dflex04.runtime.h vsasl3dflex04.ext.h vsasl3dflex04.host.map \
+		cvinit.in predownload.in
+/ESE_DV26.0_R02/psd/bin/ec  -z -+  -I. -I/ESE_DV26.0_R02/psd/include -I/ESE_DV26.0_R02/psd/include/private -I/ESE_DV26.0_R02/psd/include/private/support -I/ESE_DV26.0_R02/psd/psdsource -I/ESE_DV26.0_R02/lx/em/include -I/ESE_DV26.0_R02/lx/include -I/ESE_DV26.0_R02/host/foundation-libs/CnvEndianLib/host_static -I/ESE_DV26.0_R02/host/include -I/ESE_DV26.0_R02/mgd/include -I/ESE_DV26.0_R02/vre/support vsasl3dflex04.e
+Running EPIC 1.2 compiler (30/Jan/2013)...
+PSD top =  /ESE_DV26.0_R02/psd
+vsasl3dflex04.e: Running EPIC 3.4 preprocessor (Feb 28 2018 11:06:49)...
+This is being compiled as a Research PSD.
+line 309: Warning: CV changed from 'double' to 'float': myflip_rf2
+line 310: Warning: CV changed from 'double' to 'float': start_rf2
+line 370: Warning: CV changed from 'double' to 'float': vsi_Gmax
+line 371: Warning: CV changed from 'double' to 'float': vsi_Gcontrol
+line 372: Warning: CV changed from 'double' to 'float': vel_target
+line 379: Warning: CV changed from 'double' to 'float': vsi_RFmax
+line 382: Warning: CV changed from 'double' to 'float': vsi_RFmax_calstep
+line 383: Warning: CV changed from 'double' to 'float': my_maxB1Seq
+line 398: Warning: CV changed from 'double' to 'float': vsi_velocity
+line 402: Warning: CV changed from 'double' to 'float': ArtSup_Gmax
+line 403: Warning: CV changed from 'double' to 'float': ArtSup_B1max
+line 431: Warning: CV changed from 'double' to 'float': area_gzrf1
+line 432: Warning: CV changed from 'double' to 'float': area_gzrf1r
+line 439: Warning: CV changed from 'double' to 'float': Kmax
+line 440: Warning: CV changed from 'double' to 'float': deltaK
+line 490: Warning: CV changed from 'double' to 'float': area_gzBSOrfspoiler
+EPIC preprocessor completed with 0 errors in 221.135 ms.
+/bin/touch vsasl3dflex04.epic
+==========================================================
+   Generating CV endian conversion code
+==========================================================
+/bin/rm -f vsasl3dflex04.cnvendian.input.c vsasl3dflex04.cnvendian.input.i vsasl3dflex04.cnvendian.private.h vsasl3dflex04.cnvendian.globalvar.h vsasl3dflex04.cnvendian.c vsasl3dflex04.cnvendian.api.h
+/ESE_DV26.0_R02/psd/bin/createCnvEndianInput vsasl3dflex04.cnvendian.input.c \
+		vsasl3dflex04.global.h vsasl3dflex04.allcv.h vsasl3dflex04.tgtex.h
+/ESE_DV26.0_R02/3p/endian_converter/endian_converter -i vsasl3dflex04.cnvendian.input.c -h vsasl3dflex04.cnvendian.private.h -ha vsasl3dflex04.cnvendian.api.h -hg vsasl3dflex04.cnvendian.globalvar.h -o vsasl3dflex04.cnvendian.c  -I. -I/ESE_DV26.0_R02/psd/include -I/ESE_DV26.0_R02/psd/include/private -I/ESE_DV26.0_R02/psd/include/private/support -I/ESE_DV26.0_R02/psd/psdsource -I/ESE_DV26.0_R02/lx/em/include -I/ESE_DV26.0_R02/lx/include -I/ESE_DV26.0_R02/host/foundation-libs/CnvEndianLib/host_static -I/ESE_DV26.0_R02/host/include -I/ESE_DV26.0_R02/mgd/include -I/ESE_DV26.0_R02/vre/support -m32          -DHOST_TGT     -DMGD_IF     -DLX_ENBLpopup     -DPSD_HW  -pre cv_cnv_endian_ -no_inc
+
+***** Generating Endian Conversion Files...
+
+	/ESE_DV26.0_R02/3p_osi/gnudev_host/inst/bin/x86_64-unknown-linux-gnu-gcc -E -P -o vsasl3dflex04.cnvendian.input.i vsasl3dflex04.cnvendian.input.c  -I. -I/ESE_DV26.0_R02/psd/include -I/ESE_DV26.0_R02/psd/include/private -I/ESE_DV26.0_R02/psd/include/private/support -I/ESE_DV26.0_R02/psd/psdsource -I/ESE_DV26.0_R02/lx/em/include -I/ESE_DV26.0_R02/lx/include -I/ESE_DV26.0_R02/host/foundation-libs/CnvEndianLib/host_static -I/ESE_DV26.0_R02/host/include -I/ESE_DV26.0_R02/mgd/include -I/ESE_DV26.0_R02/vre/support -m32 -DHOST_TGT -DMGD_IF -DLX_ENBLpopup -DPSD_HW -UIMAKE_NONE
+
+	/ESE_DV26.0_R02/vendor/ruby_linux/bin/ruby -I/ESE_DV26.0_R02/vendor/ruby_linux/lib/ruby/site_ruby/1.6 -I/ESE_DV26.0_R02/3p/endian_converter  /ESE_DV26.0_R02/3p/endian_converter/endian_converter.rb -i vsasl3dflex04.cnvendian.input.i  -h vsasl3dflex04.cnvendian.private.h -ha vsasl3dflex04.cnvendian.api.h -hg vsasl3dflex04.cnvendian.globalvar.h -o vsasl3dflex04.cnvendian.c -pre cv_cnv_endian_ -no_inc
+
+***** Endian Conversion Files Created
+==========================================================
+   Generating cvcopy functions
+==========================================================
+/bin/rm -f vsasl3dflex04.cvcopy.c
+/ESE_DV26.0_R02/psd/bin/contigCVs vsasl3dflex04 vsasl3dflex04.cvcopy.c vsasl3dflex04.allcv.h vsasl3dflex04.tgtex.h
+
+
+
+
+
+/export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir succeeded.
+
+   Total makes to do:   4
+   Succeeded:           1
+   Failed:              0
+   Yet to build:        3
+   Percent complete:    25%
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+*** Doing "imboot" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/host ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/imake/imboot.sh -t GCC 
+
+
+
+
+*** Doing "mrmake  hw" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/host ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/make.Linux  hw 
+/bin/rm -f vsasl3dflex04.host.o-hh
+/ESE_DV26.0_R02/3p_osi/gnudev_host/inst/bin/g++ -c -o vsasl3dflex04.host.o-hh ../vsasl3dflex04.host.cpp  -I.. -I/ESE_DV26.0_R02/psd/include -I/ESE_DV26.0_R02/psd/include/private -I/ESE_DV26.0_R02/psd/include/private/support -I/ESE_DV26.0_R02/psd/psdsource -I/ESE_DV26.0_R02/lx/em/include -I/ESE_DV26.0_R02/lx/include -I/ESE_DV26.0_R02/host/foundation-libs/CnvEndianLib/host_static -I/ESE_DV26.0_R02/host/include -I/ESE_DV26.0_R02/mgd/include -I/ESE_DV26.0_R02/vre/support -I/ESE_DV26.0_R02/3p_osi/gnudev_host/inst/ge/sys-root/usr/include/libxml2 -I/ESE_DV26.0_R02/mxutil/include      -m32     -g          -Wall   -DHOST_TGT -DMGD_IF -DLX_ENBLpopup -DPSD_HW -UIMAKE_PSDCPPSUFFIXRULES
+
+
+
+
+
+/export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/host failed.
+
+   Total makes to do:   4
+   Succeeded:           1
+   Failed:              1
+   Yet to build:        3
+   Percent complete:    25%
+
+	Make starting at Wed Apr  6 14:46:58 EDT 2022
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+*** Doing "imboot" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/imake/imboot.sh -t EPIC 
+
+
+
+
+*** Doing "mrmake  clean" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/make.Linux  clean 
+/bin/rm -f -r ./EPIC+
+/bin/rm -f *.epic *.host.c *.host.cpp *.tgt.c \
+	    *.global.h *.allcv.h \
+		*.tgtex.h *.hostdecl.h *.tgtdecl.h *.exportstr.h \
+		*.runtime.h *.ext.h *.host.map \
+		cvinit.in predownload.in
+/bin/rm -f *.epicplus *.cvinit.in *.predownload.in *.tgt_hdr.h \
+		*.allcv_hwdefs.h *.allcv_simdefs.h \
+		*.exportstr_hwdefs.h *.exportstr_simdefs.h \
+		*.hostdecl_hwdefs.h *.hostdecl_simdefs.h \
+		*.tgtdecl_hwdefs.h *.tgtdecl_simdefs.h \
+		*.tgtex_hwdefs.h *.tgtex_simdefs.h *.tgt_hdr.h
+/bin/rm -f vsasl3dflex04.cnvendian.input.c vsasl3dflex04.cnvendian.input.i vsasl3dflex04.cnvendian.private.h vsasl3dflex04.cnvendian.globalvar.h vsasl3dflex04.cnvendian.c vsasl3dflex04.cnvendian.api.h vsasl3dflex04.cvcopy.c
+
+
+
+
+
+/export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir succeeded.
+
+   Total makes to do:   4
+   Succeeded:           1
+   Failed:              0
+   Yet to build:        3
+   Percent complete:    25%
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+*** Doing "imboot" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/host ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/imake/imboot.sh -t GCC 
+
+
+
+
+*** Doing "mrmake  clean" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/host ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/make.Linux  clean 
+/bin/rm -f *.mi *.o
+/bin/rm -f *.o-hh *.o-hhts
+/bin/rm -f vsasl3dflex04
+
+
+
+
+
+/export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/host succeeded.
+
+   Total makes to do:   4
+   Succeeded:           2
+   Failed:              0
+   Yet to build:        2
+   Percent complete:    50%
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+*** Doing "imboot" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/sim_linux ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/imake/imboot.sh -t GCC_SIM_LINUX 
+
+
+
+
+*** Doing "mrmake  clean" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/sim_linux ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/make.Linux  clean 
+/bin/rm -f *.mi *.o
+/bin/rm -f *.o-hs *.o-ts
+/bin/rm -f vsasl3dflex04.host
+/bin/rm -f vsasl3dflex04.tgt
+
+
+
+
+
+/export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/sim_linux succeeded.
+
+   Total makes to do:   4
+   Succeeded:           3
+   Failed:              0
+   Yet to build:        1
+   Percent complete:    75%
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+*** Doing "imboot" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/tgt_mgd ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/imake/imboot.sh -t GCC_AGP 
+
+
+
+
+*** Doing "mrmake  clean" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/tgt_mgd ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/make.Linux  clean 
+/bin/rm -f *.o *.o-th
+/bin/rm -f vsasl3dflex04.psd.mgd
+
+
+
+
+
+/export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/tgt_mgd succeeded.
+
+   Total makes to do:   4
+   Succeeded:           4
+   Failed:              0
+   Yet to build:        0
+   Percent complete:    100%
+
+Target compile files missing: /ESE_DV26.0_R02/3p_windriver/gppve/inst. Skipped tgt_ice directory
+	Make starting at Wed Apr  6 14:47:08 EDT 2022
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+*** Doing "imboot" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/imake/imboot.sh -t EPIC 
+
+
+
+
+*** Doing "mrmake  hw" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/make.Linux  hw 
+==========================================================
+   Processing vsasl3dflex04
+==========================================================
+/bin/rm -f vsasl3dflex04.epic vsasl3dflex04.host.c vsasl3dflex04.host.cpp vsasl3dflex04.tgt.c \
+		vsasl3dflex04.global.h vsasl3dflex04.allcv.h \
+		vsasl3dflex04.tgtex.h vsasl3dflex04.hostdecl.h vsasl3dflex04.tgtdecl.h vsasl3dflex04.exportstr.h \
+		vsasl3dflex04.runtime.h vsasl3dflex04.ext.h vsasl3dflex04.host.map \
+		cvinit.in predownload.in
+/ESE_DV26.0_R02/psd/bin/ec  -z -+  -I. -I/ESE_DV26.0_R02/psd/include -I/ESE_DV26.0_R02/psd/include/private -I/ESE_DV26.0_R02/psd/include/private/support -I/ESE_DV26.0_R02/psd/psdsource -I/ESE_DV26.0_R02/lx/em/include -I/ESE_DV26.0_R02/lx/include -I/ESE_DV26.0_R02/host/foundation-libs/CnvEndianLib/host_static -I/ESE_DV26.0_R02/host/include -I/ESE_DV26.0_R02/mgd/include -I/ESE_DV26.0_R02/vre/support vsasl3dflex04.e
+Running EPIC 1.2 compiler (30/Jan/2013)...
+PSD top =  /ESE_DV26.0_R02/psd
+vsasl3dflex04.e: Running EPIC 3.4 preprocessor (Feb 28 2018 11:06:49)...
+This is being compiled as a Research PSD.
+line 309: Warning: CV changed from 'double' to 'float': myflip_rf2
+line 310: Warning: CV changed from 'double' to 'float': start_rf2
+line 370: Warning: CV changed from 'double' to 'float': vsi_Gmax
+line 371: Warning: CV changed from 'double' to 'float': vsi_Gcontrol
+line 372: Warning: CV changed from 'double' to 'float': vel_target
+line 379: Warning: CV changed from 'double' to 'float': vsi_RFmax
+line 382: Warning: CV changed from 'double' to 'float': vsi_RFmax_calstep
+line 383: Warning: CV changed from 'double' to 'float': my_maxB1Seq
+line 398: Warning: CV changed from 'double' to 'float': vsi_velocity
+line 402: Warning: CV changed from 'double' to 'float': ArtSup_Gmax
+line 403: Warning: CV changed from 'double' to 'float': ArtSup_B1max
+line 431: Warning: CV changed from 'double' to 'float': area_gzrf1
+line 432: Warning: CV changed from 'double' to 'float': area_gzrf1r
+line 439: Warning: CV changed from 'double' to 'float': Kmax
+line 440: Warning: CV changed from 'double' to 'float': deltaK
+line 490: Warning: CV changed from 'double' to 'float': area_gzBSOrfspoiler
+EPIC preprocessor completed with 0 errors in 222.741 ms.
+/bin/touch vsasl3dflex04.epic
+==========================================================
+   Generating CV endian conversion code
+==========================================================
+/bin/rm -f vsasl3dflex04.cnvendian.input.c vsasl3dflex04.cnvendian.input.i vsasl3dflex04.cnvendian.private.h vsasl3dflex04.cnvendian.globalvar.h vsasl3dflex04.cnvendian.c vsasl3dflex04.cnvendian.api.h
+/ESE_DV26.0_R02/psd/bin/createCnvEndianInput vsasl3dflex04.cnvendian.input.c \
+		vsasl3dflex04.global.h vsasl3dflex04.allcv.h vsasl3dflex04.tgtex.h
+/ESE_DV26.0_R02/3p/endian_converter/endian_converter -i vsasl3dflex04.cnvendian.input.c -h vsasl3dflex04.cnvendian.private.h -ha vsasl3dflex04.cnvendian.api.h -hg vsasl3dflex04.cnvendian.globalvar.h -o vsasl3dflex04.cnvendian.c  -I. -I/ESE_DV26.0_R02/psd/include -I/ESE_DV26.0_R02/psd/include/private -I/ESE_DV26.0_R02/psd/include/private/support -I/ESE_DV26.0_R02/psd/psdsource -I/ESE_DV26.0_R02/lx/em/include -I/ESE_DV26.0_R02/lx/include -I/ESE_DV26.0_R02/host/foundation-libs/CnvEndianLib/host_static -I/ESE_DV26.0_R02/host/include -I/ESE_DV26.0_R02/mgd/include -I/ESE_DV26.0_R02/vre/support -m32          -DHOST_TGT     -DMGD_IF     -DLX_ENBLpopup     -DPSD_HW  -pre cv_cnv_endian_ -no_inc
+
+***** Generating Endian Conversion Files...
+
+	/ESE_DV26.0_R02/3p_osi/gnudev_host/inst/bin/x86_64-unknown-linux-gnu-gcc -E -P -o vsasl3dflex04.cnvendian.input.i vsasl3dflex04.cnvendian.input.c  -I. -I/ESE_DV26.0_R02/psd/include -I/ESE_DV26.0_R02/psd/include/private -I/ESE_DV26.0_R02/psd/include/private/support -I/ESE_DV26.0_R02/psd/psdsource -I/ESE_DV26.0_R02/lx/em/include -I/ESE_DV26.0_R02/lx/include -I/ESE_DV26.0_R02/host/foundation-libs/CnvEndianLib/host_static -I/ESE_DV26.0_R02/host/include -I/ESE_DV26.0_R02/mgd/include -I/ESE_DV26.0_R02/vre/support -m32 -DHOST_TGT -DMGD_IF -DLX_ENBLpopup -DPSD_HW -UIMAKE_NONE
+
+	/ESE_DV26.0_R02/vendor/ruby_linux/bin/ruby -I/ESE_DV26.0_R02/vendor/ruby_linux/lib/ruby/site_ruby/1.6 -I/ESE_DV26.0_R02/3p/endian_converter  /ESE_DV26.0_R02/3p/endian_converter/endian_converter.rb -i vsasl3dflex04.cnvendian.input.i  -h vsasl3dflex04.cnvendian.private.h -ha vsasl3dflex04.cnvendian.api.h -hg vsasl3dflex04.cnvendian.globalvar.h -o vsasl3dflex04.cnvendian.c -pre cv_cnv_endian_ -no_inc
+
+***** Endian Conversion Files Created
+==========================================================
+   Generating cvcopy functions
+==========================================================
+/bin/rm -f vsasl3dflex04.cvcopy.c
+/ESE_DV26.0_R02/psd/bin/contigCVs vsasl3dflex04 vsasl3dflex04.cvcopy.c vsasl3dflex04.allcv.h vsasl3dflex04.tgtex.h
+
+
+
+
+
+/export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir succeeded.
+
+   Total makes to do:   4
+   Succeeded:           1
+   Failed:              0
+   Yet to build:        3
+   Percent complete:    25%
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+*** Doing "imboot" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/host ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/imake/imboot.sh -t GCC 
+
+
+
+
+*** Doing "mrmake  hw" in /export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/host ...
+
+% /usr/ESE/ESE_DV26.0_R02/mb/bin/make.Linux  hw 
+/bin/rm -f vsasl3dflex04.host.o-hh
+/ESE_DV26.0_R02/3p_osi/gnudev_host/inst/bin/g++ -c -o vsasl3dflex04.host.o-hh ../vsasl3dflex04.host.cpp  -I.. -I/ESE_DV26.0_R02/psd/include -I/ESE_DV26.0_R02/psd/include/private -I/ESE_DV26.0_R02/psd/include/private/support -I/ESE_DV26.0_R02/psd/psdsource -I/ESE_DV26.0_R02/lx/em/include -I/ESE_DV26.0_R02/lx/include -I/ESE_DV26.0_R02/host/foundation-libs/CnvEndianLib/host_static -I/ESE_DV26.0_R02/host/include -I/ESE_DV26.0_R02/mgd/include -I/ESE_DV26.0_R02/vre/support -I/ESE_DV26.0_R02/3p_osi/gnudev_host/inst/ge/sys-root/usr/include/libxml2 -I/ESE_DV26.0_R02/mxutil/include      -m32     -g          -Wall   -DHOST_TGT -DMGD_IF -DLX_ENBLpopup -DPSD_HW -UIMAKE_PSDCPPSUFFIXRULES
+
+
+
+
+
+/export/home/fmrilab/djfrey/epic/hernancopy/RX28R4/vsasl3dflex_dir/host failed.
+
+   Total makes to do:   4
+   Succeeded:           1
+   Failed:              1
+   Yet to build:        3
+   Percent complete:    25%
+
