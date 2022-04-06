@@ -126,7 +126,6 @@
 #include "epic_loadcvs.h"
 #include "InitAdvisories.h"
 
-
 #include "grad_rf_sprlio.globals.h"
 
 /*#define GRESMAX       21000     /* number of points grad max */

@@ -13161,7 +13161,7 @@ extern void cv_cnv_endian_DABOUTHUBINDEX_E( DABOUTHUBINDEX_E *_ecnv_target_ );
 	cv_cnv_endian_int( _ecnv_arg_ ); \
 }
 
-#define cv_cnv_endian_GoldenAngle(_arg_) \
+#define cv_cnv_endian_rotAngle(_arg_) \
 { \
 	float *_ecnv_arg_ = (float *)(_arg_); \
 	cv_cnv_endian_float( _ecnv_arg_ ); \
@@ -13171,12 +13171,6 @@ extern void cv_cnv_endian_DABOUTHUBINDEX_E( DABOUTHUBINDEX_E *_ecnv_target_ );
 { \
 	float *_ecnv_arg_ = (float *)(_arg_); \
 	cv_cnv_endian_float( _ecnv_arg_ ); \
-}
-
-#define cv_cnv_endian_doGoldenAngle(_arg_) \
-{ \
-	int *_ecnv_arg_ = (int *)(_arg_); \
-	cv_cnv_endian_int( _ecnv_arg_ ); \
 }
 
 #define cv_cnv_endian_time_90_180(_arg_) \
@@ -13282,6 +13276,12 @@ extern void cv_cnv_endian_DABOUTHUBINDEX_E( DABOUTHUBINDEX_E *_ecnv_target_ );
 }
 
 #define cv_cnv_endian_rf_phase_cycle(_arg_) \
+{ \
+	int *_ecnv_arg_ = (int *)(_arg_); \
+	cv_cnv_endian_int( _ecnv_arg_ ); \
+}
+
+#define cv_cnv_endian_doXrot(_arg_) \
 { \
 	int *_ecnv_arg_ = (int *)(_arg_); \
 	cv_cnv_endian_int( _ecnv_arg_ ); \

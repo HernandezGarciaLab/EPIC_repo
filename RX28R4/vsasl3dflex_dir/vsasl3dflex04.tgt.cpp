@@ -21,7 +21,7 @@ __asm__(".align 8");
 #include "vsasl3dflex04.allcv.h"
 #include "vsasl3dflex04.tgtex.h"
 #include "vsasl3dflex04.tgtdecl.h"
-long _header_source_rev= 1648822361;
+long _header_source_rev= 1649276793;
 
 int pre = 0; /* prescan flag */
 short thamp;
@@ -73,6 +73,7 @@ float *crusheramptab;
 #include "epic_loadcvs.h"
 #include "pgen_tmpl.h"
 #include "support_func.h"
+#include "mat3x3.h"
 
 long deadtime_tipdown_core;
 long deadtime_refocus_core;
@@ -103,13 +104,10 @@ STATUS pulsegen(void)
 	char tstr[40];
 	short *ts;
 	int j, jj;
-	float rdx, rdy;
-	float cphi, sphi, x;
-	float xi, cxi, sxi;
+	float rdx, rdy, rdz;
 	int n, s;
 	short debugstate ;
 	debugstate = debug;
-	float  Ryxz[9];
 
 	sspinit(psd_board_type);
 	fprintf(stderr, "my_maxB1Seq=%.4f \n", my_maxB1Seq);
@@ -445,49 +443,33 @@ STATUS pulsegen(void)
 	}
 	rdx = rsp_info[0].rsprloc;
 	rdy = rsp_info[0].rspphasoff;
+	rdz = 0.0;
+	
+	int dorotAngle = 1;
+	float xi, psi, phi;
+	float Ryxz[3][3];
+	int rax[3];
+	float rang[3];
+	int sum;
+	float x;
 	for (i = 0; i < nl; i++) {
-		/*LHG 7.10.20: the angle of rotation is half in the spiral IN-OUT case */
-		/*
-		cphi = cos(2.0*3.14159265*i / (double) nl);
-		sphi = sin(2.0*3.14159265*i / (double) nl);
-		*/
-		cphi = cos(3.14159265*i/ (double) nl);
-		sphi = sin(3.14159265*i/ (double) nl);
 		x = off_fov*2.*FS_PI*gamp*GAM*GRAD_UPDATE_TIME*1e-6/(10.0*max_pg_wamp);
 
 		for (s = 0; s < opslquant; s++) {
 
-			xi = M_PI * s/ (float) opslquant;
-			if (fillrotations) xi += (float)i/ (float)nl * M_PI/ (float)opslquant;
+			xi = (float)doXrot * rotAngle * ( (float)s + ((float)fillrotations * (float)i/ (float)nl) );
+			psi = (float)doYrot * rotAngle * ( (float)s + ((float)fillrotations * (float)i/ (float)nl) );
+			phi = M_PI * (float)i/ (float)nl;
 
-			if (doGoldenAngle){
-				xi = (float) s * GoldenAngle;
-				if (fillrotations) xi += (float)i/ (float)nl * GoldenAngle;
-			}
+			rax[0] = 1;
+			rax[1] = 0;
+			rax[2] = 2;
 
-			cxi = cos(xi); sxi = sin(xi);
-			/*
-			Ryxz[0] = sphi*sxi*sxi + cphi*cxi;
-			Ryxz[1] = cphi*sxi*sxi - cxi*sphi;
-			Ryxz[2] = cxi*sxi;
-			Ryxz[3] = cxi*sphi;
-			Ryxz[4] = cphi*cxi;
-			Ryxz[5] = -sxi;
-			Ryxz[6] = cxi*sphi*sxi - cphi*sxi;
-			Ryxz[7] = sphi*sxi + cphi*cxi*sxi;
-			Ryxz[8] = cxi*cxi;
-			*/
-			/* My hand calculation on the board using a 'flipped Rx' */
-			Ryxz[0] = cphi*cxi - sphi*sxi*sxi ;
-			Ryxz[1] = cphi*sxi*sxi + cxi*sphi;
-			Ryxz[2] = cxi*sxi;
-			Ryxz[3] = -cxi*sphi;
-			Ryxz[4] = cxi*cphi;
-			Ryxz[5] = -sxi;
-			Ryxz[6] = -sxi*cphi - cxi*sxi*sphi;
-			Ryxz[7] = -sxi*sphi + cxi*sxi*cphi;
-			Ryxz[8] = cxi*cxi;
+			rang[0] = psi;
+			rang[1] = xi;
+			rang[2] = phi;
 
+			genrot3x3(rax,rang,Ryxz); 
 
 			sprintf(tstr, "thetrecint_%d", i*opslquant+s);
 			pulsename(&thetrecintl[i*opslquant+s], tstr);
@@ -499,37 +481,14 @@ STATUS pulsegen(void)
 				/*ts[j] = (short) (ts[j-1] + x*((cphi*Gx[j] - sphi*Gy[j])*rdx +
 				  (cphi*Gy[j] + sphi*Gx[j])*rdy)) & ~WEOS_BIT;
 				 */
-				if(1){	
-					/* phase gain from rotation about Z axis followed by X axis :  
-					 */
-					if (doYrot){
-						/* phase gain from rotation about Z axis followed by X axis */
-						ts[j] = (short) (ts[j-1] + x*( 
-									(Ryxz[0]*Gx[j] + Ryxz[1]*Gy[j] + Ryxz[2]*Gz[j]) * rdx +
-									(Ryxz[3]*Gx[j] + Ryxz[4]*Gy[j] + Ryxz[5]*Gz[j]) * rdy +
-									(Ryxz[6]*Gx[j] + Ryxz[7]*Gy[j] + Ryxz[8]*Gz[j]) * 0.0 ))
-							& ~WEOS_BIT;
-					}
-					else
-					{
-						ts[j] = (short) (ts[j-1] + x*( 
-									(cphi*Gx[j] - sphi*Gy[j]) * rdx +
-									(cxi*(sphi*Gx[j] + cphi*Gy[j]) + sxi*Gz[j]) * rdy +
-									(-sxi*(sphi*Gx[j] + cphi*Gy[j]) + cxi*Gz[j]) * 0.0)) 
-							& ~WEOS_BIT;
-
-					}
-				}
-				else
-				{
-					/* phase gain from rotation about X axis followed by Z axis */
-					ts[j] = (short) (ts[j-1] + x*(
-						(cphi*Gx[j] - sphi*cxi*Gy[j] - sphi*sxi*Gz[j]) * rdx +
-						(sphi*Gx[j] + cphi*cxi*Gy[j] + cphi*sxi*Gz[j]) * rdy +
-						(0 + sxi*Gy[j] + cxi*Gz[j]) * 0.0)) & ~WEOS_BIT;
-				}
-
 				if (kill_rx_phase) ts[j]= (short)(0.0) & ~WEOS_BIT;
+				else {
+					ts[j] = (short) (ts[j-1] + x*(
+							(Ryxz[0][0]*Gx[j] + Ryxz[0][1]*Gy[j] + Ryxz[0][2]*Gz[j]) * rdx +
+							(Ryxz[1][0]*Gx[j] + Ryxz[1][1]*Gy[j] + Ryxz[1][2]*Gz[j]) * rdy +
+							(Ryxz[2][0]*Gx[j] + Ryxz[2][2]*Gy[j] + Ryxz[2][2]*Gz[j]) * rdz))
+						& ~WEOS_BIT;
+				}
 			}
 
 			ts[Grad_len - 1] |= WEOS_BIT;
@@ -546,8 +505,11 @@ STATUS pulsegen(void)
 				ts[0] = 0;
 				for (j = 1; j < Grad_len; j++)  {
 					jj = Grad_len -j - 1;
-					ts[j] = (short) (ts[j-1] - x*((cphi*Gx[jj] - sphi*Gy[jj])*rdx +
-								(cphi*Gy[jj] + sphi*Gx[jj])*rdy)) & ~WEOS_BIT;
+					ts[j] = (short) (ts[j-1] - x*(
+							(Ryxz[0][0]*Gx[jj] + Ryxz[0][1]*Gy[jj] + Ryxz[0][2]*Gz[j]) * rdx +
+							(Ryxz[1][0]*Gx[jj] + Ryxz[1][1]*Gy[jj] + Ryxz[1][2]*Gz[j]) * rdy +
+							(Ryxz[2][0]*Gx[jj] + Ryxz[2][1]*Gy[jj] + Ryxz[2][2]*Gz[j]) * rdz))
+						& ~WEOS_BIT;
 				}
 				ts[Grad_len - 1] |= WEOS_BIT;
 				movewaveimm(ts, &thetrecintl2[i], (int) 0, Grad_len, TOHARDWARE);
@@ -6684,7 +6646,7 @@ AutoCoilpulsegen( void )
 
 
 STATUS scancore(void);
-int doleaf(FILE* pfRotMatFile, int leafn, int framen, int slicen, int* trig, int* bangn, int dabop, int dtype); 
+int doleaf(FILE* pfRotMatFile, int leafn, int ifr, int slicen, int* trig, int* bangn, int dabop, int dtype); 
 
 void get_rfamp(int ntab, int* rfamp);
 
@@ -11292,7 +11254,7 @@ void doadjust(  int* trig)
  *
  * arguments
  *     leafn  -- interleaf number.       0 <= leafn  < nl.
- *     framen -- temporal frame number.  0 <= framen < nframes.
+ *     ifr -- temporal frame number.  0 <= ifr < nframes.
  *     slicen -- slice number.           0 <= slicen < opslquant.
  * 		 LHG: in the 3D version, this is now the kz phase encode position.
  *     bangn  -- rf bang number.         0 <= bangn  < nbang.
@@ -11301,13 +11263,12 @@ void doadjust(  int* trig)
  *
  */
 
-int doleaf(FILE* pfRotMatFile, int leafn, int framen, int slicen, int* trig, int* bangn, int dabop,  int dtype)
+int doleaf(FILE* pfRotMatFile, int leafn, int ifr, int slicen, int* trig, int* bangn, int dabop,  int dtype)
 {
 	int n, k, viewn;
 	int echon;
 	short rf2amp;
 	s32 rotmatx[1][9];
-	float phi, cphi, sphi;
 	/*int phase;*/
 	float  phase1, phase2; 
 	int myxmitfreq, myrecfreq;
@@ -11400,102 +11361,50 @@ int doleaf(FILE* pfRotMatFile, int leafn, int framen, int slicen, int* trig, int
 
 
 	/* set up dab */
-	viewn = framen*nl + leafn + 1;
+	viewn = ifr*nl + leafn + 1;
 	echon = 0;
 
 	loaddab(&echo1, slordtab[slicen], echon, dabop, viewn, (TYPDAB_PACKETS)dtype, dabmask);
 
+// (DJF 4/6/2022) - rewriting rotation matrix calculations using added library:
+	float xi, psi, phi;
+	float Ryxz[3][3];
+	int rax[3];
+	float rang[3];
+	int sum;
 
-	/*LHG 5/21/20 add rotation about the x-axis
-	for each "slice" / k-space platter,  multiply rotmat[] by a second rotation matrix
-	Here is the matrix multiplication of the slice rotation times the original rotmat :
-	|  1   0      0   |     |   |
-	|  0  cos    sin  |  x  | R |
-	|  0 -sin    cos  |     |   |
-	*/
-	double xi, cxi, sxi;
-	short  tmpmat[1][9];
-	float  Ryxz[9];
+	xi = (float)doXrot * rotAngle * ( (float)slicen + ((float)fillrotations * (float)leafn/ (float)nl) );
+	psi = (float)doYrot * rotAngle * ( (float)slicen + ((float)fillrotations * (float)leafn/ (float)nl) );
+	phi = M_PI * (float)leafn/ (float)nl;
+	
+	rax[0] = 1;// in genrot3x3, axis 1 corresponds to y
+	rax[1] = 0;// in genrot3x3, axis 0 corresponds to x
+	rax[2] = 2;// in genrot3x3, axis 2 corresponds to z
 
-	xi = M_PI * (float)slicen/ (float) opslquant;
-	if (fillrotations) xi += (float) leafn/ (float)nl * M_PI/ (float)opslquant;
+	rang[0] = psi;
+	rang[1] = xi;
+	rang[2] = phi;
 
-	if (doGoldenAngle){
-		xi = (float) slicen * GoldenAngle;
-		if (fillrotations) xi += (float) leafn/ (float)nl * GoldenAngle;
-	}
+	genrot3x3(rax,rang,Ryxz);
 
-
-	cxi = cos(xi); sxi = sin(xi);
-
-	phi = 3.14159265*(leafn)/(float)nl;
-	cphi = cos(phi); sphi = sin(phi);
-
-	if (doYrot)
-	{
-		/* the whole rotation matrix is Ry*Rx*Rz */
-		/*
-		Ryxz[0] = sphi*sxi*sxi + cphi*cxi;
-		Ryxz[1] = cphi*sxi*sxi - cxi*sphi;
-		Ryxz[2] = cxi*sxi;
-		Ryxz[3] = cxi*sphi;
-		Ryxz[4] = cphi*cxi;
-		Ryxz[5] = -sxi;
-		Ryxz[6] = cxi*sphi*sxi - cphi*sxi;
-		Ryxz[7] = sphi*sxi + cphi*cxi*sxi;
-		Ryxz[8] = cxi*cxi;
-		*/
-		/* My hand calculation on the board using a 'flipped Rx' */
-		Ryxz[0] = cphi*cxi - sphi*sxi*sxi ;
-		Ryxz[1] = cphi*sxi*sxi + cxi*sphi;
-		Ryxz[2] = cxi*sxi;
-		Ryxz[3] = -cxi*sphi;
-		Ryxz[4] = cxi*cphi;
-		Ryxz[5] = -sxi;
-		Ryxz[6] = -sxi*cphi - cxi*sxi*sphi;
-		Ryxz[7] = -sxi*sphi + cxi*sxi*cphi;
-		Ryxz[8] = cxi*cxi;
-
-
-
-		/* Now we apply i to the scanner's rotation matrix*/
-		rotmatx[0][0] = IRINT(Ryxz[0]*savrot[0][0] + Ryxz[1]*savrot[0][3] + Ryxz[2]*savrot[0][6]); 
-		rotmatx[0][1] = IRINT(Ryxz[0]*savrot[0][1] + Ryxz[1]*savrot[0][4] + Ryxz[2]*savrot[0][7]); 
-		rotmatx[0][2] = IRINT(Ryxz[0]*savrot[0][2] + Ryxz[1]*savrot[0][5] + Ryxz[2]*savrot[0][8]); 
-
-		rotmatx[0][3] = IRINT(Ryxz[3]*savrot[0][0] + Ryxz[4]*savrot[0][3] + Ryxz[5]*savrot[0][6]); 
-		rotmatx[0][4] = IRINT(Ryxz[3]*savrot[0][1] + Ryxz[4]*savrot[0][4] + Ryxz[5]*savrot[0][7]); 
-		rotmatx[0][5] = IRINT(Ryxz[3]*savrot[0][2] + Ryxz[4]*savrot[0][5] + Ryxz[5]*savrot[0][8]); 
-
-		rotmatx[0][6] = IRINT(Ryxz[6]*savrot[0][0] + Ryxz[7]*savrot[0][3] + Ryxz[8]*savrot[0][6]); 
-		rotmatx[0][7] = IRINT(Ryxz[6]*savrot[0][1] + Ryxz[7]*savrot[0][4] + Ryxz[8]*savrot[0][7]); 
-		rotmatx[0][8] = IRINT(Ryxz[6]*savrot[0][2] + Ryxz[7]*savrot[0][5] + Ryxz[8]*savrot[0][8]); 
-
-	}
-	else
-	{
-		/* new code:  first Rx, then Rz */
-		/* X axis rotation on savrot */
-		for (k = 0; k < 9; k += 3)
-		{
-			tmpmat[0][k] =   IRINT(savrot[slicen][k]);
-			tmpmat[0][k+1] = IRINT(cxi*savrot[slicen][k+1] + sxi*savrot[slicen][k+2]);
-			tmpmat[0][k+2] = IRINT(-sxi*savrot[slicen][k+1] + cxi*savrot[slicen][k+2]);
-		}
-
-		/* Z axis rotation on tmpmat */
-		for (k = 0; k < 9; k += 3)
-		{
-			rotmatx[0][k] =   IRINT( cphi * tmpmat[0][k] + sphi * tmpmat[0][k+1]);
-			rotmatx[0][k+1] = IRINT(-sphi * tmpmat[0][k] + cphi * tmpmat[0][k+1]);
-			rotmatx[0][k+2] = IRINT( tmpmat[0][k+2]);
+	
+	for (int irow = 0; irow < 3; irow++) {
+		for (int icol = 0; icol < 3; icol++) {
+			sum = 0;
+			for (int ivecel = 0; ivecel < 3; ivecel++)
+				sum = IRINT(Ryxz[irow][ivecel]*savrot[0][irow*3+icol*3+ivecel]);
+			rotmatx[0][irow*3+icol] = sum;
 		}
 	}
+
 
 	/* write a log of the rotation matrices for each leaf and platter */
-	if (framen==1)
+	if (ifr==0)
 	{
-		fprintf(pfRotMatFile,"\n%d \t%d \t%f \t%f\t", slicen, leafn, xi, phi);
+		fprintf(pfRotMatFile,"\n%d \t%d \t%d \t%f \t%f\t", slicen, leafn, xi, psi, phi);
+		for (k=0;k<9;k++) fprintf(pfRotMatFile,"%d \t", rotmatx[0][k]);
+
+		fprintf(stderr,"Rotation applied:\n\n%d \t%d \t%d \t%f \t%f\t", slicen, leafn, xi, psi, phi);
 		for (k=0;k<9;k++) fprintf(pfRotMatFile,"%d \t", rotmatx[0][k]);
 	}
 

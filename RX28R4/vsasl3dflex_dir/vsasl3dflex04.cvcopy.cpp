@@ -6,7 +6,7 @@
  * to be downloaded to the target PSD and a function to endian convert
  * these variables.
  *
- * Generated on Fri Apr  1 10:12:47 2022 
+ * Generated on Wed Apr  6 16:26:40 2022 
  */
 
 #ifndef h_vsasl3dflex04_cvcopy_cpp
@@ -2142,9 +2142,8 @@ static const cvcopy_table_entry cvcopy_table[] = {
     { &R_accel, sizeof(R_accel) },
     { &THETA_accel, sizeof(THETA_accel) },
     { &Ncenter, sizeof(Ncenter) },
-    { &GoldenAngle, sizeof(GoldenAngle) },
+    { &rotAngle, sizeof(rotAngle) },
     { &se_slab_fraction, sizeof(se_slab_fraction) },
-    { &doGoldenAngle, sizeof(doGoldenAngle) },
     { &time_90_180, sizeof(time_90_180) },
     { &time_180_180, sizeof(time_180_180) },
     { &textra90, sizeof(textra90) },
@@ -2163,6 +2162,7 @@ static const cvcopy_table_entry cvcopy_table[] = {
     { &rf2_fraction, sizeof(rf2_fraction) },
     { &variable_fa, sizeof(variable_fa) },
     { &rf_phase_cycle, sizeof(rf_phase_cycle) },
+    { &doXrot, sizeof(doXrot) },
     { &doYrot, sizeof(doYrot) },
     { &BStime, sizeof(BStime) },
     { &BS1_time, sizeof(BS1_time) },
@@ -9843,14 +9843,11 @@ void cvcopy_cnv_endian( char * data )
     cv_cnv_endian_Ncenter( data );
     data += sizeof(Ncenter);
 
-    cv_cnv_endian_GoldenAngle( data );
-    data += sizeof(GoldenAngle);
+    cv_cnv_endian_rotAngle( data );
+    data += sizeof(rotAngle);
 
     cv_cnv_endian_se_slab_fraction( data );
     data += sizeof(se_slab_fraction);
-
-    cv_cnv_endian_doGoldenAngle( data );
-    data += sizeof(doGoldenAngle);
 
     cv_cnv_endian_time_90_180( data );
     data += sizeof(time_90_180);
@@ -9905,6 +9902,9 @@ void cvcopy_cnv_endian( char * data )
 
     cv_cnv_endian_rf_phase_cycle( data );
     data += sizeof(rf_phase_cycle);
+
+    cv_cnv_endian_doXrot( data );
+    data += sizeof(doXrot);
 
     cv_cnv_endian_doYrot( data );
     data += sizeof(doYrot);
@@ -15932,9 +15932,8 @@ static const char * cvcopy_table_names[] = {
     "R_accel", 
     "THETA_accel", 
     "Ncenter", 
-    "GoldenAngle", 
+    "rotAngle", 
     "se_slab_fraction", 
-    "doGoldenAngle", 
     "time_90_180", 
     "time_180_180", 
     "textra90", 
@@ -15953,6 +15952,7 @@ static const char * cvcopy_table_names[] = {
     "rf2_fraction", 
     "variable_fa", 
     "rf_phase_cycle", 
+    "doXrot", 
     "doYrot", 
     "BStime", 
     "BS1_time", 

@@ -13322,11 +13322,9 @@ int	FID_dur = 0;
 float 	R_accel= 1.0;
 float 	THETA_accel = 1.0;
 int	Ncenter = 20;
-float 	GoldenAngle = 0;
-
+float 	rotAngle = 0;
 
 float	se_slab_fraction = 1.5 ;
-int	doGoldenAngle = 1;
 
 int 	time_90_180 = 0;
 int	time_180_180 = 0;
@@ -13352,6 +13350,7 @@ int	rf_sign = 1;
 float 	rf2_fraction = 0.7;
 int	variable_fa = 0;
 int	rf_phase_cycle = 0;
+int	doXrot = 1;
 int	doYrot = 0;  /* rotate around the KY axis after the X-axis*/
 
 

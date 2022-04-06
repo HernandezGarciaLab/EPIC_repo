@@ -720,6 +720,7 @@ int cveval()
 	area_gzrf1r  = _area_gzrf1r.fixedflag ?      ((void)(-(double)a_gzrf1*(pw_gzrf1+pw_gzrf1d)/2.0), area_gzrf1r) : -(double)a_gzrf1*(pw_gzrf1+pw_gzrf1d)/2.0;
 	a_gzrf1r  = _a_gzrf1r.fixedflag ?    ((void)((double)area_gzrf1r/(pw_gzrf1r+pw_gzrf1rd)), a_gzrf1r) : (double)area_gzrf1r/(pw_gzrf1r+pw_gzrf1rd);
 
+	rotAngle  = _rotAngle.fixedflag ?  ((void)(M_PI*(3-sqrt(5))), rotAngle) : M_PI*(3-sqrt(5));
 
 	/* values for Arterial suppression pulses LHG 10.15.19 */
 	if (doArtSup)
@@ -868,8 +869,6 @@ int cveval()
 	fprintf(stderr, "\npsdseqtime, seqtr, tmin, optr=  %d   %d  %d  %d", psdseqtime,  seqtr,tmin,optr);
 	fprintf(stderr, "\nt_adjust = %d , astseqtime= %d \n", t_adjust, astseqtime);
 	/*---------------------------*/
-
-	GoldenAngle  = _GoldenAngle.fixedflag ?   ((void)(137.5*M_PI/180.0), GoldenAngle) : 137.5*M_PI/180.0;
 
 	/* init RF pulses' amplitudes  */
 	myflip_rf2  = _myflip_rf2.fixedflag ?  ((void)(180), myflip_rf2) : 180;

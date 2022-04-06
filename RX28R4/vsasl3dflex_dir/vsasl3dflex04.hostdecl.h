@@ -15467,11 +15467,9 @@ _cvint  _FID_dur = { &FID_dur, -MAXINT, MAXINT, 0, 0, 0, 0, 1, 1, VISIBLE, "", 0
 _cvfloat  _R_accel = { &R_accel, -MAXFLOAT, MAXFLOAT, 0, 0, 0, 0, 1, 1, VISIBLE, "", 0, "" };
 _cvfloat  _THETA_accel = { &THETA_accel, -MAXFLOAT, MAXFLOAT, 0, 0, 0, 0, 1, 1, VISIBLE, "", 0, "" };
 _cvint  _Ncenter = { &Ncenter, -MAXINT, MAXINT, 0, 0, 0, 0, 1, 1, VISIBLE, "", 0, "" };
-_cvfloat  _GoldenAngle = { &GoldenAngle, -MAXFLOAT, MAXFLOAT, 0, 0, 0, 0, 1, 1, VISIBLE, "", 0, "" };
-
+_cvfloat  _rotAngle = { &rotAngle, -MAXFLOAT, MAXFLOAT, 0, 0, 0, 0, 1, 1, VISIBLE, "", 0, "" };
 
 _cvfloat  _se_slab_fraction = { &se_slab_fraction,  0, 10,  0, 0, 0, 0, 1, 1,  VIS,  "fraction of the nominal z FOV excited by 180 degree pulse", 0, "" };
-_cvint  _doGoldenAngle = { &doGoldenAngle, -MAXINT, MAXINT, 0, 0, 0, 0, 1, 1, VISIBLE, "", 0, "" };
 
 _cvint  _time_90_180 = { &time_90_180, -MAXINT, MAXINT, 0, 0, 0, 0, 1, 1, VISIBLE, "", 0, "" };
 _cvint  _time_180_180 = { &time_180_180, -MAXINT, MAXINT, 0, 0, 0, 0, 1, 1, VISIBLE, "", 0, "" };
@@ -15497,6 +15495,7 @@ _cvint  _rf_sign = { &rf_sign, -MAXINT, MAXINT, 0, 0, 0, 0, 1, 1, VISIBLE, "", 0
 _cvfloat  _rf2_fraction = { &rf2_fraction, -MAXFLOAT, MAXFLOAT, 0, 0, 0, 0, 1, 1, VISIBLE, "", 0, "" };
 _cvint  _variable_fa = { &variable_fa, -MAXINT, MAXINT, 0, 0, 0, 0, 1, 1, VISIBLE, "", 0, "" };
 _cvint  _rf_phase_cycle = { &rf_phase_cycle, -MAXINT, MAXINT, 0, 0, 0, 0, 1, 1, VISIBLE, "", 0, "" };
+_cvint  _doXrot = { &doXrot, -MAXINT, MAXINT, 0, 0, 0, 0, 1, 1, VISIBLE, "", 0, "" };
 _cvint  _doYrot = { &doYrot, -MAXINT, MAXINT, 0, 0, 0, 0, 1, 1, VISIBLE, "", 0, "" };
 
 
