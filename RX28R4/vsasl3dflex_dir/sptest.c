@@ -15,7 +15,7 @@ int main()
 	int Nshots_phi = 1;
 	float fFOV = 20;   /*cm*/
 	float fXres = 0.3; 
-    float fZres = 0.3; 
+	float fZres = 0.3; 
     
 	float fDeltaT = 4e-6; /*seconds*/
 	float Gmax = 2;
@@ -27,9 +27,17 @@ int main()
 	float slowDown=10.0;
 	float R_accel = 1;
 	float THETA_accel = 1;
-    int Ncenter = 40;
+	int Ncenter = 40;
 
-    
+   
+	// testing fprintfs
+	/*
+	int	n=0;
+	long	rotmat[1][9];
+
+	for (n=0; n<9; n++) rotmat[0][n]= (long)n;	
+	for (n=0;n<9;n++) fprintf(stderr,"%d \t", rotmat[0][n]);
+	*/
     
 	oprbw = 125*1e3;  /* Hz*/
 	deltaK = 1 / fFOV ;  /* cm^-1*/

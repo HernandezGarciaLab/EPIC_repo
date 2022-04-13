@@ -2132,7 +2132,7 @@ STATUS pulsegen(void)
 			rang[1] = xi;
 			rang[2] = phi;
 
-			genrot3x3(rax,rang,Ryxz); 
+			genrot3x3(3,rax,rang,Ryxz); 
 
 			sprintf(tstr, "thetrecint_%d", i*opslquant+s);
 			pulsename(&thetrecintl[i*opslquant+s], tstr);
@@ -3509,27 +3509,25 @@ int doleaf(FILE* pfRotMatFile, int leafn, int ifr, int slicen, int* trig, int* b
 	rang[1] = xi;
 	rang[2] = phi;
 
-	genrot3x3(rax,rang,Ryxz);
-
+	genrot3x3(3,rax,rang,Ryxz);
 	
-	for (int irow = 0; irow < 3; irow++) {
+	for (int irow = 0; irow <3; irow++) {
 		for (int icol = 0; icol < 3; icol++) {
 			sum = 0;
 			for (int ivecel = 0; ivecel < 3; ivecel++)
-				sum = IRINT(Ryxz[irow][ivecel]*savrot[0][irow*3+icol*3+ivecel]);
+				sum += IRINT(Ryxz[irow][ivecel] * savrot[0][ivecel*3+icol]);
 			rotmatx[0][irow*3+icol] = sum;
 		}
 	}
 
-
 	/* write a log of the rotation matrices for each leaf and platter */
-	if (ifr==0)
+	if (ifr==1)
 	{
-		fprintf(pfRotMatFile,"\n%d \t%d \t%d \t%f \t%f\t", slicen, leafn, xi, psi, phi);
+		fprintf(pfRotMatFile,"\n%d \t%d \t%f \t%f \t%f\t", slicen, leafn, xi, psi, phi);
 		for (k=0;k<9;k++) fprintf(pfRotMatFile,"%d \t", rotmatx[0][k]);
 
-		fprintf(stderr,"Rotation applied:\n\n%d \t%d \t%d \t%f \t%f\t", slicen, leafn, xi, psi, phi);
-		for (k=0;k<9;k++) fprintf(pfRotMatFile,"%d \t", rotmatx[0][k]);
+		fprintf(stderr,"\nRotation applied:\n%d \t%d \t%f \t%f \t%f\t", slicen, leafn, xi, psi, phi);
+		for (k=0;k<9;k++) fprintf(stderr,"%d \t", rotmatx[0][k]);
 	}
 
 	//fprintf(stderr,"\nkzcount = %d  bangn= %d  slicen= %d  viewn= %d leafn=%d ", kzcount, *bangn, slicen, viewn, leafn );

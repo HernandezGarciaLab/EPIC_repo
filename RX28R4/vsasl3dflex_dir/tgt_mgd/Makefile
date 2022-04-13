@@ -11,7 +11,7 @@
 #
 # ====================================================================
 
-PWD        = /export/home/fmrilab/hernan/epic/RX28R4/vsasl3dflex_dir/tgt_mgd
+PWD        = /export/home/fmrilab/djfrey/epic/RX28R4/vsasl3dflex_dir/tgt_mgd
 TOP        = /ESE_RX28.0_R04_UHP3T
 OS_NAME    = Linux
 OS_RELEASE = 2_6_32__754_35_1_el6_x86_64
