@@ -12,7 +12,7 @@
 //========== Function declarations ==========//
 
 int geneye3x3(float result[3][3]);
-int genrot3x3(int axises[], float angles[], float result[3][3]);
+int genrot3x3(int N_angles, int axises[], float angles[], float result[3][3]);
 int assignmat3x3(float mat1[3][3], float mat2[3][3]);
 int printmat3x3(float mat[3][3]);
 int addmat3x3(float mat1[3][3], float mat2[3][3], float result[3][3]);
@@ -48,7 +48,7 @@ int geneye3x3(float result[3][3]) {
 	return 0;
 }
 
-int genrot3x3(int axises[], float angles[], float result[3][3]) {
+int genrot3x3(int N_angles, int axises[], float angles[], float result[3][3]) {
 // Function genrot3x3 by David Frey
 // 
 // 	Creates a 3x3 rotation matrix given axis and angles in specified order
@@ -58,9 +58,6 @@ int genrot3x3(int axises[], float angles[], float result[3][3]) {
 // 	angles: float array of rotation angles corresponding to axises of rotation
 // 	result: 3x3 array of type float (function will write to the array)
 //
-
-	// Get number of angles from length of axises array:
-	int N_angles = (int)sizeof(axises)/(int)sizeof(axises[0]);
 
 	// Initialize variables:
 	int axis;
@@ -117,8 +114,7 @@ int genrot3x3(int axises[], float angles[], float result[3][3]) {
 				break;
 			default :
 				// Error if invalid axis name
-				printf("\nError: Invalid axis name\n");
-				exit(EXIT_FAILURE);
+				fprintf(stderr,"\nError: Invalid axis name\n");
 		}
 		// Multiply rotation matrices and assign to Rtotal:
 		multmat3x3(Rax,Rtotal,Rprod);
@@ -164,8 +160,8 @@ int printmat3x3(float mat[3][3]) {
 	int row, col;
 	for (row = 0; row < 3; row++) {
 		for (col = 0; col < 3; col++)
-			printf("%f\t",mat[row][col]); // Seperate cols by tab
-		printf("\n"); // Seperate rows by newline
+			fprintf(stderr,"%f\t",mat[row][col]); // Seperate cols by tab
+		fprintf(stderr,"\n"); // Seperate rows by newline
 	}
 
 	return 0;

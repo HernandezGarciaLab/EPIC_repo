@@ -13245,7 +13245,7 @@ int	vsi_rfdelay = 50; /* allow a little time between RF and gradient */
 float 	vsi_flip  = 0;  /* flip angle of each Hanning pulse */
 /*int  	myramptime = 120;  *** lhg 9/21/12   ramp times for the pcasl pulses */
 int  	myramptime = 260;
-float 	vsi_Gmax = 3.0; /* default gradient max aplitude in VSI pulse train */
+float 	vsi_Gmax = 1.5; /* default gradient max aplitude in VSI pulse train */
 float 	vsi_Gcontrol = 3.0 ; /* default gradient max aplitude in control pulse train */
 float	vel_target  = 0; /* the decceleration rate the we wish to use for labeleing */
 		/* calibration of the flip angles is done by starting at max and reducing the RF */

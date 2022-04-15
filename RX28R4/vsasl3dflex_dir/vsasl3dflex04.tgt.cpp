@@ -21,7 +21,7 @@ __asm__(".align 8");
 #include "vsasl3dflex04.allcv.h"
 #include "vsasl3dflex04.tgtex.h"
 #include "vsasl3dflex04.tgtdecl.h"
-long _header_source_rev= 1649708791;
+long _header_source_rev= 1649883319;
 
 int pre = 0; /* prescan flag */
 short thamp;
@@ -484,8 +484,12 @@ STATUS pulsegen(void)
 				if (kill_rx_phase) ts[j]= (short)(0.0) & ~WEOS_BIT;
 				else {
 					ts[j] = (short) (ts[j-1] + x*(
+							/*
 							(Ryxz[0][0]*Gx[j] + Ryxz[0][1]*Gy[j] + Ryxz[0][2]*Gz[j]) * rdx +
 							(Ryxz[1][0]*Gx[j] + Ryxz[1][1]*Gy[j] + Ryxz[1][2]*Gz[j]) * rdy +
+							*/
+							(Ryxz[0][0]*Gx[j] + Ryxz[0][1]*Gy[j] + Ryxz[0][2]*Gz[j]) * rdy +
+							(Ryxz[1][0]*Gx[j] + Ryxz[1][1]*Gy[j] + Ryxz[1][2]*Gz[j]) * rdx +
 							(Ryxz[2][0]*Gx[j] + Ryxz[2][2]*Gy[j] + Ryxz[2][2]*Gz[j]) * rdz))
 						& ~WEOS_BIT;
 				}

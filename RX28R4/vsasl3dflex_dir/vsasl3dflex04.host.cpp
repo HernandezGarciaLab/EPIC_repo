@@ -498,15 +498,15 @@ int cveval()
 	}
 
 	cvdesc(opuser13, "K-space radial speed factor (1 = linear)");
-	cvdef(opuser13, 1.875);
-	opuser13  = _opuser13.fixedflag ? ((void)(1.875), opuser13) : 1.875;
+	cvdef(opuser13, 1.625);
+	opuser13  = _opuser13.fixedflag ? ((void)(1.625), opuser13) : 1.625;
 	cvmin(opuser13, 0);
 	cvmax(opuser13, 3.0);
 	R_accel  = _R_accel.fixedflag ?  ((void)(opuser13), R_accel) : opuser13;
 
 	cvdesc(opuser14, "K-space rotation speed factor (2=twice the number of turns)");
-	cvdef(opuser14, 1.875);
-	opuser14  = _opuser14.fixedflag ?  ((void)(1.875), opuser14) : 1.875;
+	cvdef(opuser14, 1.625);
+	opuser14  = _opuser14.fixedflag ?  ((void)(1.625), opuser14) : 1.625;
 	cvmin(opuser14,0.5);
 	cvmax(opuser14, 5.0);
 	THETA_accel  = _THETA_accel.fixedflag ?  ((void)(opuser14), THETA_accel) : opuser14;
@@ -538,7 +538,7 @@ int cveval()
 	cvmin(opuser19,0);
 	cvmax(opuser19,4);
 	cvdef(opuser19,3);
-	opuser19  = _opuser19.fixedflag ?  ((void)(2.0), opuser19) : 2.0;
+	opuser19  = _opuser19.fixedflag ?  ((void)(1.5), opuser19) : 1.5;
 	vsi_Gmax  = _vsi_Gmax.fixedflag ?  ((void)(opuser19), vsi_Gmax) : opuser19;
 	vsi_Gcontrol  = _vsi_Gcontrol.fixedflag ?  ((void)(vsi_Gmax), vsi_Gcontrol) : vsi_Gmax;
 
@@ -571,7 +571,7 @@ int cveval()
 	cvmin(opuser23,0);
 	cvmax(opuser23, 999999);
 	cvdef(opuser23,15999);
-	opuser23  = _opuser23.fixedflag ?  ((void)(12360), opuser23) : 12360;
+	opuser23  = _opuser23.fixedflag ?  ((void)(17268), opuser23) : 17268;
 	vsi_train_len  = _vsi_train_len.fixedflag ?  ((void)(opuser23), vsi_train_len) : opuser23;
 
 
@@ -1345,6 +1345,19 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 	}
 	/*pitscan = (nextra + nframes*nl)*(t_adjust + astseqtime + t_tipdown_core + t_seqcore*opslquant);*/
 	pitscan  = _pitscan.fixedflag ?    ((void)((nextra+nframes*nl)*optr), pitscan) : (nextra+nframes*nl)*optr;
+/////////////////////////////////////////////////////////////
+// LHG 4/12/22 : update clock for MRF
+	if(mrf_mode){
+		pitscan  = _pitscan.fixedflag ?  ((void)(0), pitscan) : 0;
+		for(i=0;i<nframes;i++){
+			pitscan  = _pitscan.fixedflag ?    ((void)((int)(1e6*AStime_array[i]+0.1)), pitscan) : pitscan+(int)(1e6*AStime_array[i]+0.1);
+			pitscan  = _pitscan.fixedflag ?  ((void)((int)1e6*t_delay_array[i]), pitscan) : pitscan+(int)1e6*t_delay_array[i];
+			pitscan  = _pitscan.fixedflag ?  ((void)((int)1e6*t_adjust_array[i]), pitscan) : pitscan+(int)1e6*t_adjust_array[i];
+			pitscan  = _pitscan.fixedflag ?  ((void)((int)seqtr), pitscan) : pitscan+(int)seqtr;
+		}
+	}
+/////////////////////////////////////////////////////////////
+
 
 	/* initialize slice sel spoiler gradient. */
 

@@ -366,7 +366,7 @@ int	vsi_rfdelay = 50; /* allow a little time between RF and gradient */
 float 	vsi_flip ;  /* flip angle of each Hanning pulse */
 /*int  	myramptime = 120;  *** lhg 9/21/12   ramp times for the pcasl pulses */
 int  	myramptime = 260;
-double 	vsi_Gmax = 3.0; /* default gradient max aplitude in VSI pulse train */
+double 	vsi_Gmax = 1.5; /* default gradient max aplitude in VSI pulse train */
 double 	vsi_Gcontrol = 3.0 ; /* default gradient max aplitude in control pulse train */
 double	vel_target ; /* the decceleration rate the we wish to use for labeleing */
 		/* calibration of the flip angles is done by starting at max and reducing the RF */
@@ -885,15 +885,15 @@ int cveval()
 	}
 
 	cvdesc(opuser13, "K-space radial speed factor (1 = linear)");
-	cvdef(opuser13, 1.875);
-	opuser13 =1.875;
+	cvdef(opuser13, 1.625);
+	opuser13 =1.625;
 	cvmin(opuser13, 0);
 	cvmax(opuser13, 3.0);
 	R_accel = opuser13;
 
 	cvdesc(opuser14, "K-space rotation speed factor (2=twice the number of turns)");
-	cvdef(opuser14, 1.875);
-	opuser14 = 1.875;
+	cvdef(opuser14, 1.625);
+	opuser14 = 1.625;
 	cvmin(opuser14,0.5);
 	cvmax(opuser14, 5.0);
 	THETA_accel = opuser14;
@@ -925,7 +925,7 @@ int cveval()
 	cvmin(opuser19,0);
 	cvmax(opuser19,4);
 	cvdef(opuser19,3);
-	opuser19 = 2.0;
+	opuser19 = 1.5;
 	vsi_Gmax = opuser19;
 	vsi_Gcontrol = vsi_Gmax;
 
@@ -958,7 +958,7 @@ int cveval()
 	cvmin(opuser23,0);
 	cvmax(opuser23, 999999);
 	cvdef(opuser23,15999);
-	opuser23 = 12360;
+	opuser23 = 17268;
 	vsi_train_len = opuser23;
 
 
@@ -1591,6 +1591,19 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 	}
 	/*pitscan = (nextra + nframes*nl)*(t_adjust + astseqtime + t_tipdown_core + t_seqcore*opslquant);*/
 	pitscan = (nextra + nframes*nl)*optr;
+	/////////////////////////////////////////////////////////////
+	// LHG 4/12/22 : update clock for MRF
+	if(mrf_mode){
+		pitscan = 0;
+		for(i=0;i<nframes;i++){
+			pitscan += (int)(1e6*AStime_array[i] + 0.1);
+			pitscan += (int)1e6*t_delay_array[i];
+			pitscan += (int)1e6*t_adjust_array[i];
+			pitscan += (int)seqtr;
+		}
+	}
+	/////////////////////////////////////////////////////////////
+
 
 	/* initialize slice sel spoiler gradient. */
 
@@ -2147,8 +2160,12 @@ STATUS pulsegen(void)
 				if (kill_rx_phase) ts[j]= (short)(0.0) & ~WEOS_BIT;
 				else {
 					ts[j] = (short) (ts[j-1] + x*(
+							/*
 							(Ryxz[0][0]*Gx[j] + Ryxz[0][1]*Gy[j] + Ryxz[0][2]*Gz[j]) * rdx +
 							(Ryxz[1][0]*Gx[j] + Ryxz[1][1]*Gy[j] + Ryxz[1][2]*Gz[j]) * rdy +
+							*/
+							(Ryxz[0][0]*Gx[j] + Ryxz[0][1]*Gy[j] + Ryxz[0][2]*Gz[j]) * rdy +
+							(Ryxz[1][0]*Gx[j] + Ryxz[1][1]*Gy[j] + Ryxz[1][2]*Gz[j]) * rdx +
 							(Ryxz[2][0]*Gx[j] + Ryxz[2][2]*Gy[j] + Ryxz[2][2]*Gz[j]) * rdz))
 						& ~WEOS_BIT;
 				}
