@@ -13351,7 +13351,7 @@ float 	rf2_fraction = 0.7;
 int	variable_fa = 0;
 int	rf_phase_cycle = 0;
 int	doXrot = 1;
-int	doYrot = 0;  /* rotate around the KY axis after the X-axis*/
+int	doYrot = 1;  /* rotate around the KY axis after the X-axis*/
 
 
 /* LHG 12/14/12 : Variables for the backgroun Suppression pulses */

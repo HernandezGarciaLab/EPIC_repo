@@ -21,7 +21,7 @@ __asm__(".align 8");
 #include "vsasl3dflex04.allcv.h"
 #include "vsasl3dflex04.tgtex.h"
 #include "vsasl3dflex04.tgtdecl.h"
-long _header_source_rev= 1649883319;
+long _header_source_rev= 1650903830;
 
 int pre = 0; /* prescan flag */
 short thamp;
@@ -73,7 +73,7 @@ float *crusheramptab;
 #include "epic_loadcvs.h"
 #include "pgen_tmpl.h"
 #include "support_func.h"
-#include "mat3x3.h"
+#include "seriosmatx.h"
 
 long deadtime_tipdown_core;
 long deadtime_refocus_core;
@@ -103,8 +103,8 @@ STATUS pulsegen(void)
 	int waitloc, waitloc2;
 	char tstr[40];
 	short *ts;
-	int j, jj;
-	float rdx, rdy, rdz;
+	int j, k;
+	int leafn, slicen, spiraln;
 	int n, s;
 	short debugstate ;
 	debugstate = debug;
@@ -433,98 +433,59 @@ STATUS pulsegen(void)
 	fprintf(stderr, "... done. " );
 
 
-	/* Fov offset  */
+	/* DJF 4.25.22 calculation of reciever phase correction for fov offset */
 	ts = (short*)AllocNode(Grad_len*sizeof(short));
 	thetrecintl = (WF_PULSE *) AllocNode(opslquant*nl*sizeof(WF_PULSE));
-	thetrecintlp = (WF_HW_WAVEFORM_PTR *) AllocNode(opslquant*nl*sizeof(WF_HW_WAVEFORM_PTR));
-	if(gtype==2)  {
-		thetrecintl2 = (WF_PULSE *) AllocNode(nl*sizeof(WF_PULSE));
-		thetrecintlp2 = (WF_HW_WAVEFORM_PTR *) AllocNode(nl*sizeof(WF_HW_WAVEFORM_PTR));
-	}
-	rdx = rsp_info[0].rsprloc;
-	rdy = rsp_info[0].rspphasoff;
-	rdz = 0.0;
-	
-	int dorotAngle = 1;
-	float xi, psi, phi;
-	float Ryxz[3][3];
-	int rax[3];
-	float rang[3];
-	int sum;
-	float x;
-	for (i = 0; i < nl; i++) {
-		x = off_fov*2.*FS_PI*gamp*GAM*GRAD_UPDATE_TIME*1e-6/(10.0*max_pg_wamp);
+	thetrecintlp = (WF_HW_WAVEFORM_PTR *) AllocNode(opslquant*nl*sizeof(WF_HW_WAVEFORM_PTR));	
+	float x = off_fov*2.*FS_PI*gamp*GAM*GRAD_UPDATE_TIME*1e-6/(10.0*max_pg_wamp);
+	float rdvec[3] = {rsp_info[0].rsprloc, rsp_info[0].rspphasoff, 0.0};
+	float Gvec[3];
+	float Gvec_rot[3];
+	float phsgain[1];
+	float rotmatx[9];
+	for (leafn = 0; leafn < nl; leafn++) {
+		for (slicen = 0; slicen < opslquant; slicen++) {
+			/* Determine total view index: */
+			spiraln = leafn*opslquant + slicen;
 
-		for (s = 0; s < opslquant; s++) {
-
-			xi = (float)doXrot * rotAngle * ( (float)s + ((float)fillrotations * (float)i/ (float)nl) );
-			psi = (float)doYrot * rotAngle * ( (float)s + ((float)fillrotations * (float)i/ (float)nl) );
-			phi = M_PI * (float)i/ (float)nl;
-
-			rax[0] = 1;
-			rax[1] = 0;
-			rax[2] = 2;
-
-			rang[0] = psi;
-			rang[1] = xi;
-			rang[2] = phi;
-
-			genrot3x3(3,rax,rang,Ryxz); 
-
-			sprintf(tstr, "thetrecint_%d", i*opslquant+s);
-			pulsename(&thetrecintl[i*opslquant+s], tstr);
-			createreserve(&thetrecintl[i*opslquant+s], THETA, Grad_len);
-			/* The demodulation waveform necessary for this interleaf */
+			/* Get rotation matrix for current view */
+			for (k=0; k<9; k++) rotmatx[k] = rotmatrices[spiraln][k];
+			
+			/* Integrate phase gain due to gradient at each point */	
 			ts[0] = 0;
-			for (j = 1; j < Grad_len; j++)  {
-				/* phase gain from rotation about Z axis only */
-				/*ts[j] = (short) (ts[j-1] + x*((cphi*Gx[j] - sphi*Gy[j])*rdx +
-				  (cphi*Gy[j] + sphi*Gx[j])*rdy)) & ~WEOS_BIT;
-				 */
-				if (kill_rx_phase) ts[j]= (short)(0.0) & ~WEOS_BIT;
-				else {
-					ts[j] = (short) (ts[j-1] + x*(
-							/*
-							(Ryxz[0][0]*Gx[j] + Ryxz[0][1]*Gy[j] + Ryxz[0][2]*Gz[j]) * rdx +
-							(Ryxz[1][0]*Gx[j] + Ryxz[1][1]*Gy[j] + Ryxz[1][2]*Gz[j]) * rdy +
-							*/
-							(Ryxz[0][0]*Gx[j] + Ryxz[0][1]*Gy[j] + Ryxz[0][2]*Gz[j]) * rdy +
-							(Ryxz[1][0]*Gx[j] + Ryxz[1][1]*Gy[j] + Ryxz[1][2]*Gz[j]) * rdx +
-							(Ryxz[2][0]*Gx[j] + Ryxz[2][2]*Gy[j] + Ryxz[2][2]*Gz[j]) * rdz))
-						& ~WEOS_BIT;
-				}
-			}
+			for (j=1; j<Grad_len; j++) {
+				/* put gradient into vector form for matrix multiplication: */
+				Gvec[0] = (float) Gx[j];
+				Gvec[1] = (float) Gy[j];
+				Gvec[2] = (float) Gz[j];
 
+				/* multiply gradient vector by rotation matrix: */
+				multiplymatrix(3,3,1,rotmatx,Gvec,Gvec_rot);
+				
+				/* dot product with rd vector to get total phase gain */
+				multiplymatrix(1,3,1,Gvec,rdvec,phsgain);
+
+				/* Integrate phase gain */
+				if (kill_rx_phase) ts[j] = (short)(0.0) & ~WEOS_BIT;
+				else ts[j] = (short) (ts[j-1] + x*IRINT(phsgain[0])) & ~WEOS_BIT;
+			}
 			ts[Grad_len - 1] |= WEOS_BIT;
+
+			/* Use ts to set waveform: */
+			sprintf(tstr, "thetrecint_%d", spiraln);
+			pulsename(&thetrecintl[spiraln], tstr);
+			createreserve(&thetrecintl[spiraln], THETA, Grad_len);
 			movewaveimm(ts, 
-				&thetrecintl[i*opslquant + s], 
+				&thetrecintl[spiraln], 
 				(int) 0, 
 				Grad_len, TOHARDWARE);
-			thetrecintlp[i*opslquant+s] = thetrecintl[i*opslquant+s].wave_addr;
+			thetrecintlp[spiraln] = thetrecintl[spiraln].wave_addr;
 
-			if(gtype==2)  {
-				sprintf(tstr, "thetrecint2_%d", i);
-				pulsename(&thetrecintl2[i], tstr);
-				createreserve(&thetrecintl2[i], THETA, Grad_len);
-				ts[0] = 0;
-				for (j = 1; j < Grad_len; j++)  {
-					jj = Grad_len -j - 1;
-					ts[j] = (short) (ts[j-1] - x*(
-							(Ryxz[0][0]*Gx[jj] + Ryxz[0][1]*Gy[jj] + Ryxz[0][2]*Gz[j]) * rdx +
-							(Ryxz[1][0]*Gx[jj] + Ryxz[1][1]*Gy[jj] + Ryxz[1][2]*Gz[j]) * rdy +
-							(Ryxz[2][0]*Gx[jj] + Ryxz[2][1]*Gy[jj] + Ryxz[2][2]*Gz[j]) * rdz))
-						& ~WEOS_BIT;
-				}
-				ts[Grad_len - 1] |= WEOS_BIT;
-				movewaveimm(ts, &thetrecintl2[i], (int) 0, Grad_len, TOHARDWARE);
-				thetrecintlp2[i] = thetrecintl2[i].wave_addr;
-			}
 		}
 	}
 	FreeNode(ts);
 	/* initial load */
 	setwave(thetrecintlp[0], &thetrec, 0);
-	if(gtype==2)  setwave(thetrecintlp2[0], &thetrec2, 0);
 	fprintf(stderr, "... done.  ");
 
 	/* spiral rewinders not needed.  Already included in spiral trajectory:
@@ -6650,7 +6611,7 @@ AutoCoilpulsegen( void )
 
 
 STATUS scancore(void);
-int doleaf(FILE* pfRotMatFile, int leafn, int ifr, int slicen, int* trig, int* bangn, int dabop, int dtype); 
+int doleaf(FILE* pfRotMatFile, int leafn, int framen, int slicen, int* trig, int* bangn, int dabop, int dtype); 
 
 void get_rfamp(int ntab, int* rfamp);
 
@@ -11258,7 +11219,7 @@ void doadjust(  int* trig)
  *
  * arguments
  *     leafn  -- interleaf number.       0 <= leafn  < nl.
- *     ifr -- temporal frame number.  0 <= ifr < nframes.
+ *     framen -- temporal frame number.  0 <= framen < nframes.
  *     slicen -- slice number.           0 <= slicen < opslquant.
  * 		 LHG: in the 3D version, this is now the kz phase encode position.
  *     bangn  -- rf bang number.         0 <= bangn  < nbang.
@@ -11267,12 +11228,13 @@ void doadjust(  int* trig)
  *
  */
 
-int doleaf(FILE* pfRotMatFile, int leafn, int ifr, int slicen, int* trig, int* bangn, int dabop,  int dtype)
+int doleaf(FILE* pfRotMatFile, int leafn, int framen, int slicen, int* trig, int* bangn, int dabop,  int dtype)
 {
 	int n, k, viewn;
 	int echon;
 	short rf2amp;
-	s32 rotmatx[1][9];
+	float rotmatx[9];
+	s32 rotmatxTS[1][9];
 	/*int phase;*/
 	float  phase1, phase2; 
 	int myxmitfreq, myrecfreq;
@@ -11365,58 +11327,17 @@ int doleaf(FILE* pfRotMatFile, int leafn, int ifr, int slicen, int* trig, int* b
 
 
 	/* set up dab */
-	viewn = ifr*nl + leafn + 1;
+	viewn = framen*nl + leafn + 1;
 	echon = 0;
 
 	loaddab(&echo1, slordtab[slicen], echon, dabop, viewn, (TYPDAB_PACKETS)dtype, dabmask);
 
-// (DJF 4/6/2022) - rewriting rotation matrix calculations using added library:
-	float xi, psi, phi;
-	float Ryxz[3][3];
-	int rax[3];
-	float rang[3];
-	int sum;
-
-	xi = (float)doXrot * rotAngle * ( (float)slicen + ((float)fillrotations * (float)leafn/ (float)nl) );
-	psi = (float)doYrot * rotAngle * ( (float)slicen + ((float)fillrotations * (float)leafn/ (float)nl) );
-	phi = M_PI * (float)leafn/ (float)nl;
-	
-	rax[0] = 1;// in genrot3x3, axis 1 corresponds to y
-	rax[1] = 0;// in genrot3x3, axis 0 corresponds to x
-	rax[2] = 2;// in genrot3x3, axis 2 corresponds to z
-
-	rang[0] = psi;
-	rang[1] = xi;
-	rang[2] = phi;
-
-	genrot3x3(3,rax,rang,Ryxz);
-	
-	for (int irow = 0; irow <3; irow++) {
-		for (int icol = 0; icol < 3; icol++) {
-			sum = 0;
-			for (int ivecel = 0; ivecel < 3; ivecel++)
-				sum += IRINT(Ryxz[irow][ivecel] * savrot[0][ivecel*3+icol]);
-			rotmatx[0][irow*3+icol] = sum;
-		}
-	}
-
-	/* write a log of the rotation matrices for each leaf and platter */
-	if (ifr==1)
-	{
-		fprintf(pfRotMatFile,"\n%d \t%d \t%f \t%f \t%f\t", slicen, leafn, xi, psi, phi);
-		for (k=0;k<9;k++) fprintf(pfRotMatFile,"%d \t", rotmatx[0][k]);
-
-		fprintf(stderr,"\nRotation applied:\n%d \t%d \t%f \t%f \t%f\t", slicen, leafn, xi, psi, phi);
-		for (k=0;k<9;k++) fprintf(stderr,"%d \t", rotmatx[0][k]);
-	}
-
-//fprintf(stderr,"\nkzcount = %d  bangn= %d  slicen= %d  viewn= %d leafn=%d ", kzcount, *bangn, slicen, viewn, leafn );
-
-	/*set rotation of platter  execute the readout core*/
-	/*LHG 7.3-.2020 - don't need to scale again?*/
-	scalerotmats(rotmatx, &loggrd, &phygrd, 1, 0);
-	setrotate((s32 *)rotmatx[0],slicen);
-	/*setrotate(rotmatx[0], 0);*/
+	/* DJF 4.25.22 get rotation matrix for current view, scale it, and set scanner */	
+	for (k=0; k<9; k++) rotmatx[k] = rotmatrices[leafn*opslquant + slicen][k];
+	scalematrix(3,3,rotmatx,pow(2,15));
+	for (k=0; k<9; k++) rotmatxTS[0][k] = IRINT(rotmatx[k]);
+	scalerotmats(rotmatxTS, &loggrd, &phygrd, 1, 0);
+	setrotate((s32 *)rotmatxTS[0],slicen);
 
 	/*adjust receiver phase to account for fov offset */
 	setwave(thetrecintlp[leafn*opslquant+slicen], &thetrec, 0);

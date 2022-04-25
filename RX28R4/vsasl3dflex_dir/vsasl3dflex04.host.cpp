@@ -38,6 +38,7 @@
 #include "sysDep.h"
 #include "sysDepSupport.h"
 #include "grad_rf_sprlio.h"
+#include "seriosmatx.h"
   
 extern "C" {
 #include "fudgetargets.c"
@@ -96,6 +97,12 @@ int rotGradWaves(
 
 int euler2mat2(float ang1,float ang2,float ang3,float *tm);
 
+/* DJF 4.25.22 seriosmatx.h function declarations: */
+int geneye(int size, float I[]);
+int genRyxz(float ax, float ay, float az);
+int multiplymatrix(int M, int N, int P, float mat1[], float mat2[], float matr[]);
+int printmatrix(int M, int N, float mat[]);
+int scalematrix(int M, int N, float mat[], float maxval);
 
 #include "rfsspsummary.h"
 
@@ -571,7 +578,7 @@ int cveval()
 	cvmin(opuser23,0);
 	cvmax(opuser23, 999999);
 	cvdef(opuser23,15999);
-	opuser23  = _opuser23.fixedflag ?  ((void)(17268), opuser23) : 17268;
+	opuser23  = _opuser23.fixedflag ?  ((void)(6850), opuser23) : 6850;
 	vsi_train_len  = _vsi_train_len.fixedflag ?  ((void)(opuser23), vsi_train_len) : opuser23;
 
 
@@ -720,6 +727,7 @@ int cveval()
 	area_gzrf1r  = _area_gzrf1r.fixedflag ?      ((void)(-(double)a_gzrf1*(pw_gzrf1+pw_gzrf1d)/2.0), area_gzrf1r) : -(double)a_gzrf1*(pw_gzrf1+pw_gzrf1d)/2.0;
 	a_gzrf1r  = _a_gzrf1r.fixedflag ?    ((void)((double)area_gzrf1r/(pw_gzrf1r+pw_gzrf1rd)), a_gzrf1r) : (double)area_gzrf1r/(pw_gzrf1r+pw_gzrf1rd);
 
+	/* DJF 4.25.22 hardcoded calculation of rotAngle as GA, eventually make a opuser CV */
 	rotAngle  = _rotAngle.fixedflag ?  ((void)(M_PI*(3-sqrt(5))), rotAngle) : M_PI*(3-sqrt(5));
 
 	/* values for Arterial suppression pulses LHG 10.15.19 */
@@ -1064,12 +1072,65 @@ int cvcheck()
 int predownload()
 {
 	int pdi, pdj;
-	int i;
+	int i, k;
+	int slicen, leafn, spiraln;
 	float max_rbw;
+	FILE * fpout;
 	FILE *fpin;
+	FILE *kviewfile;
 	float	tmp;
-	/* int  ArtSup_len = 7000;*/
 
+	/* DJF 4.25.22 Initialize important view rotation matrices: */ 
+	float rotmatx_0[9]; /* initial rotation matrix based on Rx */
+	float rotmatx_1[9]; /* rotation matrix calculated from view */
+	float rotmatx[9]; /* product of all rotations for current view */
+
+	/* DJF 4.25.22 convert savrot to column vector of float values from 0-1 */
+	for (k = 0; k<9; k++) rotmatx_0[k] = (float)savrot[0][k];
+	scalematrix(3,3,rotmatx_0,1); /* function included from seriosmatx.h */
+
+	/* DJF 4.25.22 Pre-computation of view parameter tables */
+	fprintf(stderr, "\nCalculating view parameters ...");
+	fprintf(stderr, "\ns: \tl: \tkzf: \txi: \tpsi: \tphi: \tR[9]:");
+	kviewfile = fopen("usr/g/bin/kviews.txt","w");
+	for (leafn = 0; leafn<nl; leafn++) {
+		for (slicen = 0; slicen<opslquant; slicen++) {
+			/* calculate total view index */
+			spiraln = leafn*opslquant + slicen;
+
+			/* For SOS, calculate kzf */
+			if (doXrot==1 || doYrot==1) /* if rotating about an axis, not SOS */
+				kzf[spiraln] = 0;
+			else if (opslquant%2 != 0) /* if SOS with odd # of slices */
+				kzf[spiraln] = pow(-1,slicen) * 2 * floor((slicen+1)/2)/ (opslquant-1);
+			else /* if SOS with even # of slices */
+				kzf[spiraln] = pow(-1,slicen) * 2 * floor((slicen+2)/2)/ opslquant;
+	
+			/* Calculate the rotation angles for current view */
+			xi[spiraln] = (float)doXrot * rotAngle * ( (float)slicen + ((float)fillrotations * (float)leafn/ (float)nl) );
+			psi[spiraln] = (float)doYrot * rotAngle * ( (float)slicen + ((float)fillrotations * (float)leafn/ (float)nl) );
+			phi[spiraln] = M_PI * (float)leafn/ (float)nl;
+
+			/* print slice #, leaf #, kz fraction, and angles */
+			fprintf(kviewfile, "\n%d \t%d \t%f \t%f \t%f \t%f",slicen,leafn,kzf[spiraln],xi[spiraln],psi[spiraln],phi[spiraln]);
+			fprintf(stderr, "\n%d \t%d \t%f \t%f \t%f \t%f",slicen,leafn,kzf[spiraln],xi[spiraln],psi[spiraln],phi[spiraln]);
+
+			/* Generate a rotation matrix from angles (values from 0-1) */
+			genRyxz(xi[spiraln],psi[spiraln],phi[spiraln],rotmatx_1);
+
+			/* multiply current view RM with initial RM to get a total RM */
+			multiplymatrix(3,3,3,rotmatx_1,rotmatx_0,rotmatx);
+			
+			/* store matrix in the global matrix table and print: */
+			for (k=0; k<9; k++) {
+				rotmatrices[spiraln][k] = rotmatx[k];
+				fprintf(stderr, " \t%f", rotmatx[k]);
+				fprintf(kviewfile, " \t%f", rotmatx[k]);
+			}
+
+		}
+	}
+	fclose(kviewfile);
 	fprintf(stderr,"\nPredownload stuff:");
 
 	/* Load the BIR-8 pulses for Arterial Suppression */
@@ -1278,7 +1339,7 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 		}
 	fclose(fid);
 
-	fprintf(stderr, "\n...spirals ready ... done");
+	fprintf(stderr, "\n...spirals ready ...");
 
 #include "predownload.in"
 
@@ -1355,6 +1416,9 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 			pitscan  = _pitscan.fixedflag ?  ((void)((int)1e6*t_adjust_array[i]), pitscan) : pitscan+(int)1e6*t_adjust_array[i];
 			pitscan  = _pitscan.fixedflag ?  ((void)((int)seqtr), pitscan) : pitscan+(int)seqtr;
 		}
+		fpout = fopen("/usr/g/bin/RO_time_scan.txt", "w");
+		fprintf(fpout, "%f", 1e-6*seqtr);
+		fclose(fpout);
 	}
 /////////////////////////////////////////////////////////////
 

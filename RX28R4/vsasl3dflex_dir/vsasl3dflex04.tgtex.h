@@ -180,7 +180,14 @@ WF_PROCESSOR tg_read_axis = XGRAD;
 
 
 s32 savrot[TRIG_ROT_MAX][9]= {{0}};   /* copy of rotation matrices */
-/*long savrot[TRIG_ROT_MAX][9];*/   /* copy of rotation matrices */
+
+/* DJF 4.25.22 Initialization of pre-computed view parm tables */
+float xi[MAXNUMECHOES]= {0};
+float psi[MAXNUMECHOES]= {0};
+float phi[MAXNUMECHOES]= {0};
+float kzf[MAXNUMECHOES]= {0};
+float rotmatrices[MAXNUMECHOES][9]= {{0}};
+
 RF_PULSE_INFO rfpulseInfo[RF_FREE]= {{0}};
 /*3.18.20: 3D spiral in-out */
 int Gx[GRESMAX]= {0};

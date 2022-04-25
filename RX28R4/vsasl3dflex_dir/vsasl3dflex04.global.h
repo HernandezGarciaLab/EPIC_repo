@@ -130,6 +130,7 @@
 
 /*#define GRESMAX       21000     /* number of points grad max */
 #define GRESMAX       	50000     /* number of points grad max */
+#define MAXNUMECHOES	1000	/* number of echoes max */
 #define RES_GRAMP       100     /* number of points grad rampdown  */
 #define TSP             2.0     /* slow rcvr sampling 500kHz */
 #define MAX_BW		250

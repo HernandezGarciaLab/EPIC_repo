@@ -6,7 +6,7 @@
  * to be downloaded to the target PSD and a function to endian convert
  * these variables.
  *
- * Generated on Thu Apr 14 19:32:22 2022 
+ * Generated on Mon Apr 25 12:23:58 2022 
  */
 
 #ifndef h_vsasl3dflex04_cvcopy_cpp
@@ -3436,6 +3436,11 @@ static const cvcopy_table_entry cvcopy_table[] = {
     { &tg_killer_axis, sizeof(tg_killer_axis) },
     { &tg_read_axis, sizeof(tg_read_axis) },
     { &savrot, sizeof(savrot) },
+    { &xi, sizeof(xi) },
+    { &psi, sizeof(psi) },
+    { &phi, sizeof(phi) },
+    { &kzf, sizeof(kzf) },
+    { &rotmatrices, sizeof(rotmatrices) },
     { &rfpulseInfo, sizeof(rfpulseInfo) },
     { &Gx, sizeof(Gx) },
     { &Gy, sizeof(Gy) },
@@ -13725,6 +13730,21 @@ void cvcopy_cnv_endian( char * data )
     cv_cnv_endian_savrot( data );
     data += sizeof(savrot);
 
+    cv_cnv_endian_xi( data );
+    data += sizeof(xi);
+
+    cv_cnv_endian_psi( data );
+    data += sizeof(psi);
+
+    cv_cnv_endian_phi( data );
+    data += sizeof(phi);
+
+    cv_cnv_endian_kzf( data );
+    data += sizeof(kzf);
+
+    cv_cnv_endian_rotmatrices( data );
+    data += sizeof(rotmatrices);
+
     cv_cnv_endian_rfpulseInfo( data );
     data += sizeof(rfpulseInfo);
 
@@ -17226,6 +17246,11 @@ static const char * cvcopy_table_names[] = {
     "tg_killer_axis", 
     "tg_read_axis", 
     "savrot", 
+    "xi", 
+    "psi", 
+    "phi", 
+    "kzf", 
+    "rotmatrices", 
     "rfpulseInfo", 
     "Gx", 
     "Gy", 

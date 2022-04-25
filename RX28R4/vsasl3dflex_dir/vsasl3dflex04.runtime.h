@@ -12,7 +12,7 @@
 
 char _header_revision[] = "3.4";
 char _header_release[] = "MR28.0_R03";
-long _header_source_rev= 1649883319;
+long _header_source_rev= 1650903830;
 short _header_fixed[] = {1};
 short _header_product[] = {0};
 
@@ -9269,7 +9269,6 @@ _rspdataptr _rsparray[] = {
 	{"ifr",GE_INT,0},
 	{"isl",GE_INT,0},
 	{"iv",GE_INT,0},
-	{"k",GE_INT,0},
 	{"kzcount",GE_INT,0},
 	{"maxTGAtOffset",GE_INT,0},
 	{"mtcfh_index",GE_INT,0},
@@ -9318,7 +9317,7 @@ _rspdataptr _rsparray[] = {
 	{"xtg_usefullcoil",GE_INT,0},
 };
 int _ncvs = 4584;
-int _nrsps = 127;
+int _nrsps = 126;
 
 #endif /* h_vsasl3dflex04_runtime_h */
 

@@ -112,7 +112,7 @@ int record_views = 0;
 
 int iv, ifr, isl, kzcount;
 int tmp;
-int i, k;
+int i;
 int bangn;
 int trig, dtype;
 
