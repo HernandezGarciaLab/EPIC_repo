@@ -1340,13 +1340,12 @@ int predownload()
 	float rotmatx[9]; /* product of all rotations for current view */
 
 	/* DJF 4.25.22 convert savrot to column vector of float values from 0-1 */
-	for (k = 0; k<9; k++) rotmatx_0[k] = (float)savrot[0][k];
-	scalematrix(3,3,rotmatx_0,1); /* function included from seriosmatx.h */
+	for (k = 0; k<9; k++) rotmatx_0[k] = (float)savrot[0][k]*pow(2,-15);
 
 	/* DJF 4.25.22 Pre-computation of view parameter tables */
 	fprintf(stderr, "\nCalculating view parameters ...");
 	fprintf(stderr, "\ns: \tl: \tkzf: \txi: \tpsi: \tphi: \tR[9]:");
-	kviewfile = fopen("usr/g/bin/kviews.txt","w");
+	kviewfile = fopen("/usr/g/bin/kviews.txt","w");
 	for (leafn = 0; leafn<nl; leafn++) {
 		for (slicen = 0; slicen<opslquant; slicen++) {
 			/* calculate total view index */
@@ -3543,8 +3542,8 @@ int doleaf(FILE* pfRotMatFile, int leafn, int framen, int slicen, int* trig, int
 
 	/* DJF 4.25.22 get rotation matrix for current view, scale it, and set scanner */	
 	for (k=0; k<9; k++) rotmatx[k] = rotmatrices[leafn*opslquant + slicen][k];
-	scalematrix(3,3,rotmatx,pow(2,15));
-	for (k=0; k<9; k++) rotmatxTS[0][k] = IRINT(rotmatx[k]);
+	for (k=0; k<9; k++) rotmatxTS[0][k] = (s32) IRINT(pow(2,15)*rotmatx[k]);
+
 	scalerotmats(rotmatxTS, &loggrd, &phygrd, 1, 0);
 	setrotate((s32 *)rotmatxTS[0],slicen);
 

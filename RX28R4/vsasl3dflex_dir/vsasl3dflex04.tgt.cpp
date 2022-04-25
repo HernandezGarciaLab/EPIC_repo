@@ -21,7 +21,7 @@ __asm__(".align 8");
 #include "vsasl3dflex04.allcv.h"
 #include "vsasl3dflex04.tgtex.h"
 #include "vsasl3dflex04.tgtdecl.h"
-long _header_source_rev= 1650903830;
+long _header_source_rev= 1650929182;
 
 int pre = 0; /* prescan flag */
 short thamp;
@@ -11334,8 +11334,8 @@ int doleaf(FILE* pfRotMatFile, int leafn, int framen, int slicen, int* trig, int
 
 	/* DJF 4.25.22 get rotation matrix for current view, scale it, and set scanner */	
 	for (k=0; k<9; k++) rotmatx[k] = rotmatrices[leafn*opslquant + slicen][k];
-	scalematrix(3,3,rotmatx,pow(2,15));
-	for (k=0; k<9; k++) rotmatxTS[0][k] = IRINT(rotmatx[k]);
+	for (k=0; k<9; k++) rotmatxTS[0][k] = (s32) IRINT(pow(2,15)*rotmatx[k]);
+
 	scalerotmats(rotmatxTS, &loggrd, &phygrd, 1, 0);
 	setrotate((s32 *)rotmatxTS[0],slicen);
 
