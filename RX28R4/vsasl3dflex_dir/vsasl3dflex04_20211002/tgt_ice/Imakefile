@@ -1,8 +1,0 @@
-
-
-TOOLSET = PSD_TGT_ICE
-
-
-#include "../Imakefile.common"
-
-
