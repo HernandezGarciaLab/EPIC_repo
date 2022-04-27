@@ -12,8 +12,7 @@ MAKE_TARGET = programs
  * The root name of the PSD to be built; eg: 2dfast, fsemaster
  */
 
-// PSD = vsasl3dflex05
-PSD = vsasl3dflex04
+PSD = vsasl3dflex
 
 
 /*
