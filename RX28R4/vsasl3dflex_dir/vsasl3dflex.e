@@ -467,7 +467,7 @@ int	doRotated90 = 0 with {0, 3, , VIS, "Forces the 90 degree pulse to the : 1=X 
 float 	yfov = 10.0;	/* LHG 12.22.18: this sequence allows rotation of the 90 degree pulse independently of the 180.  i
 			yfov determines the slab width of the 90 (cm) */
 float	delta_y = 0.0 with {-100, 100, , VIS, "if the 90 rf is rotated to the Y axis, use this to shift it along the Y axs "};
-int	fillrotations = 1;
+int	doKIEPI = 1;
 int	rf_sign = 1;
 float 	rf2_fraction = 0.7;
 int	variable_fa = 0;
@@ -1355,14 +1355,18 @@ int predownload()
 			/* For SOS, calculate kzf */
 			if (doXrot==1 || doYrot==1) /* if rotating about an axis, not SOS */
 				kzf[spiraln] = 0;
+			else if (doKIEPI==1 && opslquant%2 != 0) /* if SOS with odd # of slices & KIEPI on */
+				kzf[spiraln] = pow(-1,spiraln) * 2 * floor((spiraln+1)/2) / (nl*opslquant-1);
+			else if (doKIEPI==1) /* if SOS with even # of slicen & KIEPI on */
+				kzf[spiraln] = pow(-1,spiraln) * 2 * floor((spiraln+2)/2) / (nl*opslquant);
 			else if (opslquant%2 != 0) /* if SOS with odd # of slices */
 				kzf[spiraln] = pow(-1,slicen) * 2 * floor((slicen+1)/2) / (opslquant-1);
 			else /* if SOS with even # of slices */
 				kzf[spiraln] = pow(-1,slicen) * 2 * floor((slicen+2)/2) / opslquant;
 	
 			/* Calculate the rotation angles for current view */
-			xi[spiraln] = (float)doXrot * rotAngle * ( (float)slicen + ((float)fillrotations * (float)leafn / (float)nl) );
-			psi[spiraln] = (float)doYrot * rotAngle * ( (float)slicen + ((float)fillrotations * (float)leafn / (float)nl) );
+			xi[spiraln] = (float)doXrot * rotAngle * ( (float)slicen + ((float)doKIEPI * (float)leafn / (float)nl) );
+			psi[spiraln] = (float)doYrot * rotAngle * ( (float)slicen + ((float)doKIEPI * (float)leafn / (float)nl) );
 			phi[spiraln] = M_PI * (float)leafn / (float)nl;
 
 			/* print slice #, leaf #, kz fraction, and angles */
