@@ -33,7 +33,8 @@ float genspiral3dcyl_io(
 		float GMAX,  
 		float R_accel,
 		float THETA_accel,
-        	int   Ncenter
+        	int   Ncenter,
+		int   doSERIOS
 		)
 {
 
@@ -271,6 +272,16 @@ float genspiral3dcyl_io(
 
 	}
 
+	/* if doing SERIOS, zero out the z gradient */
+	if (doSERIOS == 1)
+	{
+		for (i=1; i<Npoints; i++)
+		{
+			kz[i] = 0;
+			gz[i] = 0;
+		}
+	}
+	
 	gx[Npoints]=0.0; gy[Npoints] = 0.0; gx[Npoints]=0.0;
 	fprintf(stderr,"...done");
 

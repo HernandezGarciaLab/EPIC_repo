@@ -461,13 +461,13 @@ float 	spiralGymax = 0.0;
 float 	spiralGzmax = 0.0;
 
 /* LHG 7.10.20: zero out RX phase for troubleshoor=ting: */
-int	kill_rx_phase =0;
+int	kill_rx_phase = 1;
 /*  the 90 can be rotated and used to limit the FOV */
 int	doRotated90 = 0 with {0, 3, , VIS, "Forces the 90 degree pulse to the : 1=X axis, 2=Y axis, 3=Z axis "};
 float 	yfov = 10.0;	/* LHG 12.22.18: this sequence allows rotation of the 90 degree pulse independently of the 180.  i
 			yfov determines the slab width of the 90 (cm) */
 float	delta_y = 0.0 with {-100, 100, , VIS, "if the 90 rf is rotated to the Y axis, use this to shift it along the Y axs "};
-int	doKIEPI = 1;
+int	doCAIPI = 1;
 int	rf_sign = 1;
 float 	rf2_fraction = 0.7;
 int	variable_fa = 0;
@@ -631,8 +631,9 @@ float genspiral3dcyl_io(
         float GMAX,
 	float R_accel,
 	float THETA_accel,
-	int   Ncenter
-         );
+	int   Ncenter,
+        int   doSERIOS
+	);
 
 int sph2cart(
         float* pfx,
@@ -974,7 +975,7 @@ int cveval()
 	cvmin(opuser23,0);
 	cvmax(opuser23, 999999);
 	cvdef(opuser23,15999);
-	opuser23 = 6850;
+	opuser23 = 6800;
 	vsi_train_len = opuser23;
 
 
@@ -1353,11 +1354,11 @@ int predownload()
 			spiraln = leafn*opslquant + slicen;
 
 			/* For SOS, calculate kzf */
-			if (doXrot==1 || doYrot==1) /* if rotating about an axis, not SOS */
+			if ((doXrot==1) || (doYrot==1)) /* if rotating about an axis, not SOS */
 				kzf[spiraln] = 0;
-			else if (doKIEPI==1 && opslquant%2 != 0) /* if SOS with odd # of slices & KIEPI on */
+			else if (doCAIPI==1 && opslquant%2 != 0) /* if SOS with odd # of slices & CAIPI on */
 				kzf[spiraln] = pow(-1,spiraln) * 2 * floor((spiraln+1)/2) / (nl*opslquant-1);
-			else if (doKIEPI==1) /* if SOS with even # of slicen & KIEPI on */
+			else if (doCAIPI==1) /* if SOS with even # of slicen & CAIPI on */
 				kzf[spiraln] = pow(-1,spiraln) * 2 * floor((spiraln+2)/2) / (nl*opslquant);
 			else if (opslquant%2 != 0) /* if SOS with odd # of slices */
 				kzf[spiraln] = pow(-1,slicen) * 2 * floor((slicen+1)/2) / (opslquant-1);
@@ -1365,8 +1366,8 @@ int predownload()
 				kzf[spiraln] = pow(-1,slicen) * 2 * floor((slicen+2)/2) / opslquant;
 	
 			/* Calculate the rotation angles for current view */
-			xi[spiraln] = (float)doXrot * rotAngle * ( (float)slicen + ((float)doKIEPI * (float)leafn / (float)nl) );
-			psi[spiraln] = (float)doYrot * rotAngle * ( (float)slicen + ((float)doKIEPI * (float)leafn / (float)nl) );
+			xi[spiraln] = (float)doXrot * rotAngle * ( (float)slicen + ((float)doCAIPI * (float)leafn / (float)nl) );
+			psi[spiraln] = (float)doYrot * rotAngle * ( (float)slicen + ((float)doCAIPI * (float)leafn / (float)nl) );
 			phi[spiraln] = M_PI * (float)leafn / (float)nl;
 
 			/* print slice #, leaf #, kz fraction, and angles */
@@ -1521,7 +1522,8 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 	float slowDown=10.0;
 	float myGmax;
 	myGmax = spiralGmax;
-    
+	int doSERIOS = (doXrot == 1 || doYrot == 1) ? (1) : (0);   
+ 
 	while( (slowDown-1.0)*(slowDown-1.0) >  0.0001 )
 	{
 		fprintf(stderr,"\nCalling genspiral3dcyl_io ... ");
@@ -1537,7 +1539,8 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 			myGmax,
 			R_accel,
 			THETA_accel,
-			Ncenter);
+			Ncenter,
+			doSERIOS);
 		
 		if( (slowDown-1)*(slowDown-1) >  0.0001 )	FID_dur = FID_dur * slowDown;
 
@@ -3547,6 +3550,10 @@ int doleaf(FILE* pfRotMatFile, int leafn, int framen, int slicen, int* trig, int
 
 	loaddab(&echo1, slordtab[slicen], echon, dabop, viewn, (TYPDAB_PACKETS)dtype, dabmask);
 
+	/* DJF 4.27.22 set amplitude of kz gradient */
+	if (doXrot == 0 && doYrot == 0)
+		setiamp( (int) (max_pg_iamp * kzf[leafn*opslquant + slicen] * spiralGzmax / loggrd.zfs), &gz, 0);
+
 	/* DJF 4.25.22 get rotation matrix for current view, scale it, and set scanner */	
 	for (k=0; k<9; k++) rotmatx[k] = rotmatrices[leafn*opslquant + slicen][k];
 	for (k=0; k<9; k++) rotmatxTS[0][k] = (s32) IRINT(pow(2,15)*rotmatx[k]);
@@ -3556,9 +3563,6 @@ int doleaf(FILE* pfRotMatFile, int leafn, int framen, int slicen, int* trig, int
 
 	/*adjust receiver phase to account for fov offset */
 	setwave(thetrecintlp[leafn*opslquant+slicen], &thetrec, 0);
-
-	/* DJF 4.27.22 set amplitude of kz gradient */ 
-	setiamp( (int) (max_pg_iamp * kzf[leafn*opslquant + slicen] * spiralGzmax / loggrd.zfs), &gz, 0);
 
 	/* reset offset and go for it */
 	boffset(off_seqcore);
