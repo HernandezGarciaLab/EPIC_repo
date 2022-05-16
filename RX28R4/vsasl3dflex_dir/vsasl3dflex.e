@@ -1354,16 +1354,10 @@ int predownload()
 			spiraln = leafn*opslquant + slicen;
 
 			/* For SOS, calculate kzf */
-			if ((doXrot==1) || (doYrot==1)) /* if rotating about an axis, not SOS */
+			if ((doXrot==1) || (doYrot==1)) /* if rotating about X or Y axis, not SOS */
 				kzf[spiraln] = 0;
-			else if (doCAIPI==1 && opslquant%2 != 0) /* if SOS with odd # of slices & CAIPI on */
-				kzf[spiraln] = pow(-1,spiraln) * 2 * floor((spiraln+1)/2) / (nl*opslquant-1);
-			else if (doCAIPI==1) /* if SOS with even # of slicen & CAIPI on */
-				kzf[spiraln] = pow(-1,spiraln) * 2 * floor((spiraln+2)/2) / (nl*opslquant);
-			else if (opslquant%2 != 0) /* if SOS with odd # of slices */
-				kzf[spiraln] = pow(-1,slicen) * 2 * floor((slicen+1)/2) / (opslquant-1);
-			else /* if SOS with even # of slices */
-				kzf[spiraln] = pow(-1,slicen) * 2 * floor((slicen+2)/2) / opslquant;
+			else /* if not rotating about X or Y axis, SOS */
+				kzf[spiraln] = 2 / (float)opslquant * ( pow(-1,(float)slicen) * floor(((float)slicen+1)/2) + (float)doCAIPI * pow(-1,(float)leafn) * (float)leafn / (float)nl );
 	
 			/* Calculate the rotation angles for current view */
 			xi[spiraln] = (float)doXrot * rotAngle * ( (float)slicen + ((float)doCAIPI * (float)leafn / (float)nl) );
