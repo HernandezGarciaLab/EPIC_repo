@@ -1234,6 +1234,8 @@ int cveval()
 	}
 
 	BStime = BS1_time + BS2_time + pw_BS2rf/2 ; /* + pw_BS0rf + pw_gzBS0 + 2*pw_gzBS0a; */
+
+	BStime = BS1_time + BS2_time + pw_BS2rf; /* + pw_BS0rf + pw_gzBS0 + 2*pw_gzBS0a; */
 	/*---------------------------*/
 
 	fatsattime = pw_rf0 + 2*pw_gz0d +pw_gz0 + 2*timessi;
@@ -1456,6 +1458,8 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 
 
 	BStime = BS1_time + BS2_time + pw_BS2rf/2 ; /* + pw_BS0rf + pw_gzBS0 + 2*pw_gzBS0a; */
+
+	BStime = BS1_time + BS2_time + pw_BS2rf; /* + pw_BS0rf + pw_gzBS0 + 2*pw_gzBS0a; */
 
 	fatsattime = pw_rf0 + 2*pw_gz0d +pw_gz0 + 2*timessi;
 	fuzz = 10000;
@@ -2045,7 +2049,8 @@ long 	deadtime_nothingcore;
 long	deadtime_tadjustcore;
 long	deadtime_preBScore;
 long	deadtime_tdelaycore;
-long	deadtime_art_fat_suppress_core;
+long	deadtime_art_suppress_core;
+long	deadtime_fat_suppress_core;
 long	deadtime_vsi_gapcore;
 
 /* LHG 6.29.12:  declaration of pulse waveforms for the kz-phase encode pulses
@@ -2548,6 +2553,10 @@ STATUS pulsegen(void)
 
         fprintf(stderr, "\n ... ASrf done ." );
 
+	SEQLENGTH(art_suppress_core, AStime - timessi, art_suppress_core);
+	getperiod(&deadtime_art_suppress_core, &art_suppress_core, 0);
+	fprintf(stderr, "\n ... art_suppress_core done ." );
+
 
 
 	/* LHG - 12/14/12 -  fat sat pulse from the scan core
@@ -2557,7 +2566,7 @@ STATUS pulsegen(void)
 	fprintf(stderr, "\npulsegen: generating Fat Sat pulse  ... ");
 	SINC2(RHO,
 			rf0,
-			RUP_GRD(AStime - fatsattime + psd_rf_wait ),
+			RUP_GRD( psd_rf_wait ),
 			pw_rf0,
 			a_rf0,
 			,0.5,,,loggrd);
@@ -2568,19 +2577,18 @@ STATUS pulsegen(void)
 	fprintf(stderr, "\npulsegen: generating Fat Sat gradients  ... ");
 	TRAPEZOID(ZGRAD,
 			gz0,
-			RUP_GRD(AStime - fatsattime + pwrf0 + pw_gz0a),
+			RUP_GRD(pwrf0 + pw_gz0a),
 			0,
 			0, loggrd);
-	fprintf(stderr," start: %d	end: %d",
-			RUP_GRD(AStime - fatsattime + pwrf0 + pw_gz0a),
-			RUP_GRD(AStime - fatsattime + pwrf0 + 2*pw_gz0a + pw_gz0));
 
 	fprintf(stderr, "\n ...  done ." );
 
 
-	SEQLENGTH(art_fat_suppress_core, AStime - timessi, art_fat_suppress_core);
-	getperiod(&deadtime_art_fat_suppress_core, &art_fat_suppress_core, 0);
-	fprintf(stderr, "\n ... art_fat_suppress_core done ." );
+	SEQLENGTH(fat_suppress_core, fatsattime - timessi, fat_suppress_core);
+	getperiod(&deadtime_fat_suppress_core, &fat_suppress_core, 0);
+	fprintf(stderr, "\n ... fat_suppress_core done ." );
+
+
 
 	fprintf(stderr, "\npulsegen: Creating TRdelay adjust core ... ");
 	/*  make a little trig on DABOUT6 J12  */
@@ -3360,10 +3368,11 @@ void dodelay(   int* trig)
 	fprintf(stderr,"\nCalling tdelaycore with %d " , t_delay);
 	fprintf(stderr,"\nArtSuppression = %01d" , doArtSup);
 
-	//setperiod(RUP_GRD(t_delay - timessi - BStime) , &tdelaycore, 0);
-	setperiod(RUP_GRD(t_delay - timessi ) , &tdelaycore, 0);
+	/* adjusting the t_delay to include the labeling pulsee and the BGS pulses */
+	setperiod(RUP_GRD(t_delay - timessi - BStime - t_tag) , &tdelaycore, 0);
+	//setperiod(RUP_GRD(t_delay - timessi ) , &tdelaycore, 0);
 	// LHG 3.24.2022
-	setperiod(RUP_GRD(AStime - timessi) , &art_fat_suppress_core, 0);
+
 
 	if (doArtSup == 1){
 		setiamp((int)(max_pg_iamp * (ArtSup_B1max/my_maxB1Seq) ), &ASrf_mag, 0);
@@ -3392,9 +3401,13 @@ void dodelay(   int* trig)
 	boffset(off_tdelaycore);
 	startseq(0, MAY_PAUSE);
 
-	boffset(off_art_fat_suppress_core);
+
+	setperiod(AStime - fatsattime - ArtSup_len*4 , &art_suppress_core, 0);
+	boffset(off_art_suppress_core);
 	startseq(0, MAY_PAUSE);
 
+	boffset(off_fat_suppress_core);
+	startseq(0, MAY_PAUSE);
 }
 
 
