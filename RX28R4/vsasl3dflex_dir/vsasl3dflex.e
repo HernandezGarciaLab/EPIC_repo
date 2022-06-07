@@ -454,7 +454,7 @@ int	textra90 = 0;
 int	textra180 = 0;
 
 /* LHG: 5.13.20:   trying to control the spiral Grad amplitude */
-float	spiralGmax = 2.3; /* G/cm */
+float	spiralGmax = 2.9; /* G/cm */
 float 	myGmax_check = 0.0;
 float 	spiralGxmax = 0.0;
 float 	spiralGymax = 0.0;
@@ -1179,7 +1179,7 @@ int cveval()
 
 	rfscalesech = 1.0;  /* Empirically on sphere phantom, I didn't get an inversion unutl 0.65) */
 
-	pw_BS1rf = 8000;
+	pw_BS1rf = 5000;
 	a_BS1rf = rfscalesech * (float)doBS ; /* the sech is used to generate a 180 */
 	res_BS1rf = 2000; /* the number of points in the file */
 	res_BS1rf = 500; /* the number of points in the file */
@@ -1189,7 +1189,7 @@ int cveval()
 	res_BS2rf = res_BS1rf;
 
 	 /* JS 03/14/2018: Parameters for BS0 pulses*/
-        pw_BS0rf = pw_BS1rf;
+        pw_BS0rf = pw_BS1rf/2;
         a_BS0rf = a_BS1rf;
         res_BS0rf = res_BS1rf/2;
 
