@@ -1973,7 +1973,7 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 #include "read_vsi_pulse.e"
 
 /* LHG 3.18.20:  spiral in-out in one shot */
-#include "genspiral_djfrey.e"
+#include "genspiral_djfrey.h"
 
 
 @rsp

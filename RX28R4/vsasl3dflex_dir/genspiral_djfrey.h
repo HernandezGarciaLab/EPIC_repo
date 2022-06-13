@@ -53,47 +53,55 @@ float genspiral_djfrey(
 	float Kmax = 1.0/fXres/2.0;
 	float dK = 1.0/fFOV;
 	int Nturns = (int) (THETA_accel/Nshots * Kmax/dK/2.0 + 1);
-	int Nramp = (int) (Npoints/Nturns);
+	int Nramp = (int) (Npoints/2/Nturns);
 
 	/* Calculation of sampling spacing */
 	float dn = 2.0/Npoints;
 	int n;
 
 	/* Initializing r, theta arrays and smoothing weights */
+    float r_in[Npoints/2];
+    float theta_in[Npoints/2];
 	float r[Npoints+Ncenter];
 	float theta[Npoints+Ncenter];
-	float w_ramp, w_center;
+	float w_ramp;
+    float w_rampup[Npoints/2];
+    float w_rampdown[Npoints/2];
 	for (n=0; n<(Npoints+Ncenter); n++)
 	{
 		r[n] = 0;
 		theta[n] = 0;
 	}
 
-	f_smooth = fopen("smoothing.txt","w");
-
 	/* Calculating r and theta with smoothing weights */
 	for (n=0; n<(Npoints/2); n++)
 	{
-		/* Calculate the smoothing weights based on a tanh smoothing filter */
-		/* Old code:
-		   w_center = (tanh( (Npoints/2-n-1)*Nturns*M_PI/(Npoints/2)-M_PI ) + 1) / 2;
-		   w_ramp = (tanh( ((n-1)*2*M_PI/Nramp - M_PI) ) + 1) / 2;
-		 */
-		w_center = 1 - exp( pow(-((Npoints/2-1 -n)*M_PI*Nturns/(Npoints/2)),3) );
-		w_ramp = 1 - exp( pow(-(n*M_PI*2/Nramp),3) );
+        /* Calculate r and theta for in-spiral */
+        r_in[Npoints/2-1-n] = Kmax * pow(fabs(n*dn), R_accel);
+        theta_in[Npoints/2-1-n] = fabs(n*dn) * Nturns * M_PI;
+        
+        /* Calculate smoothing weights */
+        w_rampup[n] = 1 - exp( -pow((float)n*2/Nramp,4) );
+        w_rampdown[Npoints/2-1-n] = w_rampup[n];
+    }
 
-		fprintf(f_smooth,"%f\t%f\n",w_center,w_ramp);
+    /* Apply in-spiral and smoothing to overall r and theta arrays */
+    f_smooth = fopen("smoothing.txt","w");
+    for (n=0; n<(Npoints/2); n++)
+	{
+        /* Calculate overall smoothing function */
+        w_ramp = w_rampup[n] * w_rampdown[n];
+        fprintf(f_smooth,"%f\n",w_ramp);
 
-		/* Calculate the in spiral */
-		r[n] = w_center * w_ramp * Kmax * pow(fabs(n*dn), R_accel);
-		theta[n] = fabs(n*dn) * Nturns * M_PI;
-
-		/* Calculate the out spiral as a mirror of the in spiral*/
-		r[Npoints+Ncenter-1-n] = r[n];
-		theta[Npoints+Ncenter-1-n] = theta[n] + M_PI;
+        /* Apply in-spiral */
+        r[n] = w_ramp * r_in[n];
+        theta[n] = theta_in[n];
+        
+        /* Apply out-spiral as mirror of in-spiral */
+        r[Npoints+Ncenter-1-n] = w_ramp * r_in[n];
+        theta[Npoints+Ncenter-1-n] = theta_in[n] + M_PI;
 	}
-
-	fclose(f_smooth);
+    fclose(f_smooth);
 
 	/* Rescale so max(R) = Kmax */
 	float Rmax = 0;
@@ -124,14 +132,9 @@ float genspiral_djfrey(
 	if (!doSERIOS)
 	{
 		for (n=0; n<((Npoints+Ncenter)/2); n++)
-		{
-			/* Calculate the smoothing weight */
-			/* Old code:
-			kz[n] = Kzmax*(tanh( (4*n*M_PI/Nramp - M_PI) ) + 1) / 2;
-			 */
-			
-			kz[n] = Kzmax*(1- exp( pow(-(4*n*M_PI/Nramp),3) ));
-			kz[Npoints+Ncenter-1-n] = kz[n];			
+		{	
+			kz[n] = Kzmax*(1 - exp( -pow((float)n*4/Nramp,4) ));
+			kz[Npoints+Ncenter-1-n] = kz[n];
 		}
 	}
 
@@ -201,15 +204,15 @@ float genspiral_djfrey(
 	if (fabs(maxgz/GMAX) >= slowFactor) slowFactor = fabs(maxgy/GMAX);
 
 	/* Write arrays out to file */
-	// f_grad = fopen("grad.txt","w");
+	f_grad = fopen("grad.txt","w");
 	f_ktraj_cart = fopen("ktraj_cart.txt","w");
 	f_ktraj_sph = fopen("ktraj_sph.txt","w");
-	for (n=0; n<Npoints; n++) {
-		//fprintf(f_grad, "%f\t%f\t%f\n", gx[n], gy[n], gz[n]);
+	for (n=0; n<Npoints+Ncenter; n++) {
+		fprintf(f_grad, "%f\t%f\t%f\n", gx[n], gy[n], gz[n]);
 		fprintf(f_ktraj_cart, "%f\t%f\t%f\n", kx[n], ky[n], kz[n]);
-		fprintf(f_ktraj_sph, "%f\t%f\t%f\n", r[n], theta[n]);
+		fprintf(f_ktraj_sph, "%f\t%f\n", r[n], theta[n]);
 	}
-	// fclose(f_grad);
+	fclose(f_grad);
 	fclose(f_ktraj_cart);
 	fclose(f_ktraj_sph);
 
