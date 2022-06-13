@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include "genspiral_djfrey.h"
+#include "genspiral3dcyl_io.h"
 
 int main()
 {
@@ -15,7 +15,7 @@ int main()
 	int Nshots_phi = 1;
 	float fFOV = 20;   /*cm*/
 	float fXres = 0.3; 
-    	float fZres = 0.3; 
+    float fZres = 0.3; 
     
 	float fDeltaT = 4e-6; /*seconds*/
 	float Gmax = 2;
@@ -27,9 +27,10 @@ int main()
 	float slowDown=10.0;
 	float R_accel = 1;
 	float THETA_accel = 1;
-    	int Ncenter = 40;
-        int doSERIOS = 0;
+    int Ncenter = 40;
+    int doSERIOS = 0;
 
+    
     
 	oprbw = 125*1e3;  /* Hz*/
 	deltaK = 1 / fFOV ;  /* cm^-1*/
@@ -54,12 +55,13 @@ int main()
 		fprintf(stderr, "\nNshots_theta= %d \nNshots phi \nFOV= %f",
 			Nshots_theta, Nshots_phi, fFOV );
 
-		slowDown = genspiral_djfrey(
+		slowDown = genspiral3dcyl_io(
 			gx, 
 			gy, 
 			gz,
 			GRAD_len, 
 			Nshots_theta,
+			Nshots_phi,
 			fFOV,
 			fXres,
 			fZres,
@@ -68,7 +70,7 @@ int main()
 			R_accel,
 			THETA_accel, 
             Ncenter,
-            doSERIOS
+                doSERIOS
 		      );
         
         fprintf(stderr, 

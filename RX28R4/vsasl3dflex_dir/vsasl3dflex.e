@@ -444,6 +444,7 @@ int	FID_dur;
 float 	R_accel= 1.0;
 float 	THETA_accel = 1.0;
 int	Ncenter = 20;
+float	ramp_frac = 1.0;
 float 	rotAngle;
 
 float	se_slab_fraction = 1.5 with {0,10, , VIS, "fraction of the nominal z FOV excited by 180 degree pulse"};
@@ -623,6 +624,7 @@ float genspiral_djfrey(
         float *gz,
         int   iGsize,
         int   Nshots_theta,
+	float ramp_frac,
         float fFOV,
         float fXres,
 	float fZres,
@@ -1526,9 +1528,12 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 		fprintf(stderr,"\nCalling genspiral_djfrey ... ");
 
 		Grad_len = (int)(FID_dur/4.0); /* n. samples for gradient waveform */
+        /* DJF 6/13/22 Make sure Grad_len is always even */
+        if (Grad_len%2) Grad_len+=1;
 		slowDown = genspiral_djfrey(
 			pfGx, pfGy, pfGz,
 			Grad_len, nl,
+			ramp_frac,
 			gfov,
 			gfov/(float)opxres,
 			opslthick/10.0,

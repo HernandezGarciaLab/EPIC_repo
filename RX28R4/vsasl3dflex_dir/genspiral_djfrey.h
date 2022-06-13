@@ -25,6 +25,7 @@ float genspiral_djfrey(
 		float *gz,
 		int   Npoints,
 		int   Nshots,
+        float ramp_frac,
 		float fFOV,
 		float fXres,
 		float fZres,
@@ -53,7 +54,7 @@ float genspiral_djfrey(
 	float Kmax = 1.0/fXres/2.0;
 	float dK = 1.0/fFOV;
 	int Nturns = (int) (THETA_accel/Nshots * Kmax/dK/2.0 + 1);
-	int Nramp = (int) (Npoints/2/Nturns);
+	int Nramp = (int) (ramp_frac * Npoints/2.0/Nturns);
 
 	/* Calculation of sampling spacing */
 	float dn = 2.0/Npoints;
@@ -78,11 +79,11 @@ float genspiral_djfrey(
 	{
         /* Calculate r and theta for in-spiral */
         r_in[Npoints/2-1-n] = Kmax * pow(fabs(n*dn), R_accel);
-        theta_in[Npoints/2-1-n] = fabs(n*dn) * Nturns * M_PI;
+        theta_in[Npoints/2-1-n] = fabs(n*dn) * Nturns * M_PI + M_PI/2;
         
         /* Calculate smoothing weights */
-        w_rampup[n] = 1 - exp( -pow((float)n*2/Nramp,4) );
-        w_rampdown[Npoints/2-1-n] = w_rampup[n];
+        w_rampup[n] = 1 - exp( -pow((float)n/Nramp,4) );
+        w_rampdown[Npoints/2-1-n] = 1 - exp( -pow((float)n*2/Nramp,4) );
     }
 
     /* Apply in-spiral and smoothing to overall r and theta arrays */
@@ -133,7 +134,7 @@ float genspiral_djfrey(
 	{
 		for (n=0; n<((Npoints+Ncenter)/2); n++)
 		{	
-			kz[n] = Kzmax*(1 - exp( -pow((float)n*4/Nramp,4) ));
+			kz[n] = Kzmax*(1 - exp( -pow((float)n/Nramp,4) ));
 			kz[Npoints+Ncenter-1-n] = kz[n];
 		}
 	}
@@ -201,7 +202,7 @@ float genspiral_djfrey(
 	/* Make sure max gradient is not exceeded */
 	if (fabs(maxgx/GMAX) >= slowFactor) slowFactor = fabs(maxgx/GMAX);
 	if (fabs(maxgy/GMAX) >= slowFactor) slowFactor = fabs(maxgy/GMAX);
-	if (fabs(maxgz/GMAX) >= slowFactor) slowFactor = fabs(maxgy/GMAX);
+	if (fabs(maxgz/GMAX) >= slowFactor) slowFactor = fabs(maxgz/GMAX);
 
 	/* Write arrays out to file */
 	f_grad = fopen("grad.txt","w");
