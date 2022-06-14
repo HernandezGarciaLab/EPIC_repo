@@ -288,8 +288,6 @@ int minte;
 int seqtr = 0 with {0,,1,VIS, "total time to play seq",};
 int endtime = 500ms with {0,,,,"time at end of seq in rt mode",};
 
-int extraaqpts = 20; /* DJF 6/14/22 extra points added to the acquisition length - determined experimentally */
-
 int vdflag = 0 with {0,1,,VIS, "variable-density flag",};
 float alpha = 3.6 with {1.01,200,,VIS, "variable-density parameter alpha",};
 float kmaxfrac = 0.5 with {0.05,0.95,,VIS, "fraction of kmax to switch from constant to variable density spiral",};
@@ -1534,7 +1532,7 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 
 		Grad_len = (int)(FID_dur/4.0); /* n. samples for gradient waveform */
         /* DJF 6/13/22 Make sure Grad_len is always divisible by 4 */
-        while (Grad_len%4 > 0) Grad_len+=1;
+        if (Grad_len%4) Grad_len+=1;
 	FID_dur = Grad_len*4.0;
 		slowDown = genspiral_djfrey(
 			pfGx, pfGy, pfGz,
@@ -1809,7 +1807,7 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 	cvmax(rhfrsize, 32768);		/* for now  */
 	/*LHG 7.10.10:  we want the ramp! */
 	/*rhfrsize = (res_gx-RES_GRAMP)*4us/tsp;      /* num points sampled */
-	rhfrsize = Grad_len + extraaqpts;      /* num points sampled */
+	rhfrsize = Grad_len;      /* num points sampled */
 
 	total_views=2*((nl*nframes+1)/2);  /* has to be an even number */
 	cvmax(rhnframes, total_views);
