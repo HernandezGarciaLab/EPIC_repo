@@ -519,6 +519,9 @@ float 	flip_vsitag1 = 180;
 int 	wg_vsitag1 =  TYPRHO1 with {0, WF_MAX_PROCESSORS*2-1,
                                            TYPRHO1, VIS, , };
 
+/*LHG 6.14.22: extra gain during background suppressed ASL images*/
+int	rgainasl = 4;
+
 float	xmtaddScan;
 float	TX_scale = 1.0;
 /*
@@ -2064,6 +2067,10 @@ long	deadtime_vsi_gapcore;
    WF_PULSE gzphase2a = INITPULSE; WF_PULSE gzphase2 = INITPULSE; WF_PULSE gzphase2d = INITPULSE;
 /* -----------------------------------------------------*/
 
+/* LHG 6/14/22 : packet words needed for R1 dynamic attenuation from PCASL code*/
+short sspwm_dynr1[4]={SSPDS,SSPOC,SSPD,SSPDS};
+/*****/
+
 STATUS pulsegen(void)
 {
 	int waitloc, waitloc2;
@@ -2621,6 +2628,12 @@ STATUS pulsegen(void)
 	/* Note that there is a 3ms fudge factor.  Come back and find where the error is!! */
 	fprintf(stderr, "\ntimessi: %d ", timessi );
 
+	/* :HG 6/14/22:   SSP packet for adjusting the R1 gain  (fromPCASL codes) */
+   	SSPPACKET(dynr1,
+		tlead + 4,
+		4,
+		sspwm_dynr1,);
+
 	SEQLENGTH(tadjustcore, RUP_RF(t_adjust - timessi ) ,tadjustcore);
 	fprintf(stderr, "\n ...  " );
 	getperiod(&deadtime_tadjustcore, &tadjustcore, 0);
@@ -3088,6 +3101,11 @@ STATUS scancore()
 	fprintf(stderr,"\ndomap = %d", domap);
 	fprintf(stderr,"\nM0frames = %d", M0frames);
 
+	/* LHG 6/14/22 - code from PCASL sequence adjusting R1 gaun - turn up prescan gain (pscR1)  
+	by "rgainasl" - eacc usint is 6 dB*/
+  	rgainasl += pscR1 ;
+	/***/
+
 	for (ifr = 0; ifr < nframes; ifr++)  {
 
 		/* LHG: 1/29/16: implementing GRAPPA along the z direction */
@@ -3428,6 +3446,12 @@ void doadjust(  int* trig)
 		setperiod(RUP_GRD(t_adjust-timessi - t_adjust_fudge-t_preBS) , &tadjustcore, 0);
 		boffset(off_preBScore);
 		startseq(0, MAY_PAUSE);
+
+		/* code from PCASL sequence to adjuest the R1 gain :   */
+		setwamp(SSPDS+RDC,&dynr1,0);
+		setwamp(SSPOC+RFHUBSEL,&dynr1,1);
+		setwamp(SSPD+R1IND+rgainasl-1,&dynr1,2);
+		/*************/
 	}
 
 
