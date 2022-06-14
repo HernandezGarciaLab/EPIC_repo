@@ -441,10 +441,10 @@ double	deltaK;
 int	FID_len;
 int	Grad_len;
 int	FID_dur;
-float 	R_accel= 1.0;
-float 	THETA_accel = 1.0;
+float 	R_accel= 0.5;
+float 	THETA_accel = 1.5;
 int	Ncenter = 20;
-float	ramp_frac = 1.0;
+float	ramp_frac = 2.0/3.0;
 float 	rotAngle;
 
 float	se_slab_fraction = 1.5 with {0,10, , VIS, "fraction of the nominal z FOV excited by 180 degree pulse"};
@@ -479,8 +479,8 @@ int	doYrot = 1;  /* rotate around the KY axis after the X-axis*/
 
 /* LHG 12/14/12 : Variables for the backgroun Suppression pulses */
 int	BStime = 0;    /* total time needed for background suppresson block */
-int	BS1_time = 800000; /* delay between label and second BS inversion pulses */
-int 	BS2_time = 200000;  /* delay between first and second BS inversion pulses */
+int	BS1_time = 500000; /* delay between label and second BS inversion pulses */
+int 	BS2_time = 50000;  /* delay between first and second BS inversion pulses */
 float	rfscalesech;	/* ratio of areas: autoprescan sinc to SECH pulse */
 int	doBS = 1;	/* background suppression pulses */
 int	doArtSup = 0;	/*arterial suppression pulses */
@@ -903,15 +903,15 @@ int cveval()
 	}
 
 	cvdesc(opuser13, "K-space radial speed factor (1 = linear)");
-	cvdef(opuser13, 1.625);
-	opuser13 =1.625;
+	cvdef(opuser13, 0.5);
+	opuser13 =0.5;
 	cvmin(opuser13, 0);
 	cvmax(opuser13, 3.0);
 	R_accel = opuser13;
 
 	cvdesc(opuser14, "K-space rotation speed factor (2=twice the number of turns)");
-	cvdef(opuser14, 1.625);
-	opuser14 = 1.625;
+	cvdef(opuser14, 1.5);
+	opuser14 = 1.5;
 	cvmin(opuser14,0.5);
 	cvmax(opuser14, 5.0);
 	THETA_accel = opuser14;
