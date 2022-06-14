@@ -1528,8 +1528,9 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 		fprintf(stderr,"\nCalling genspiral_djfrey ... ");
 
 		Grad_len = (int)(FID_dur/4.0); /* n. samples for gradient waveform */
-        /* DJF 6/13/22 Make sure Grad_len is always even */
-        if (Grad_len%2) Grad_len+=1;
+        /* DJF 6/13/22 Make sure Grad_len is always divisible by 4 */
+        if (Grad_len%4) Grad_len+=1;
+	FID_dur = Grad_len*4.0;
 		slowDown = genspiral_djfrey(
 			pfGx, pfGy, pfGz,
 			Grad_len, nl,
@@ -1803,8 +1804,7 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 	cvmax(rhfrsize, 32768);		/* for now  */
 	/*LHG 7.10.10:  we want the ramp! */
 	/*rhfrsize = (res_gx-RES_GRAMP)*4us/tsp;      /* num points sampled */
-	rhfrsize = (res_gx)*4us/tsp;      /* num points sampled */
-	rhfrsize = 4*(rhfrsize/4);          /* wants to be divisible by 4 */
+	rhfrsize = Grad_len;      /* num points sampled */
 
 	total_views=2*((nl*nframes+1)/2);  /* has to be an even number */
 	cvmax(rhnframes, total_views);
@@ -2150,8 +2150,6 @@ STATUS pulsegen(void)
 
 	/*waitloc = RUP_GRD(pendall(&gzphase1,0)); */
 	waitloc  = readpos;
-	/*redundant calculation?*/
-	Grad_len = (int)(FID_dur/4.0);
 	fprintf(stderr, "\nreadout core (seqcore) timing:");
 	fprintf(stderr, "\npw_rf2 : %d , opte: %d , FID_dur: %d, Grad_len: %d", pw_rf2, opte, FID_dur, Grad_len);
 	fprintf(stderr, "\nreadpos = %d , waitloc = %d", readpos, waitloc);
