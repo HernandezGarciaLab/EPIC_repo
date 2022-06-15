@@ -288,6 +288,8 @@ int minte;
 int seqtr = 0 with {0,,1,VIS, "total time to play seq",};
 int endtime = 500ms with {0,,,,"time at end of seq in rt mode",};
 
+int extraaqpts = 20; /* DJF 6/14/22 */
+
 int vdflag = 0 with {0,1,,VIS, "variable-density flag",};
 float alpha = 3.6 with {1.01,200,,VIS, "variable-density parameter alpha",};
 float kmaxfrac = 0.5 with {0.05,0.95,,VIS, "fraction of kmax to switch from constant to variable density spiral",};
@@ -516,9 +518,6 @@ int 	fat_chemshift = -440;
 float 	flip_vsitag1 = 180;
 int 	wg_vsitag1 =  TYPRHO1 with {0, WF_MAX_PROCESSORS*2-1,
                                            TYPRHO1, VIS, , };
-
-/*LHG 6.14.22: extra gain during background suppressed ASL images*/
-int	rgainasl = 4;
 
 float	xmtaddScan;
 float	TX_scale = 1.0;
@@ -1532,7 +1531,7 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 
 		Grad_len = (int)(FID_dur/4.0); /* n. samples for gradient waveform */
         /* DJF 6/13/22 Make sure Grad_len is always divisible by 4 */
-        if (Grad_len%4) Grad_len+=1;
+        while (Grad_len%4>0) Grad_len+=1;
 	FID_dur = Grad_len*4.0;
 		slowDown = genspiral_djfrey(
 			pfGx, pfGy, pfGz,
@@ -1807,7 +1806,7 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 	cvmax(rhfrsize, 32768);		/* for now  */
 	/*LHG 7.10.10:  we want the ramp! */
 	/*rhfrsize = (res_gx-RES_GRAMP)*4us/tsp;      /* num points sampled */
-	rhfrsize = Grad_len;      /* num points sampled */
+	rhfrsize = Grad_len + extraaqpts;      /* num points sampled */
 
 	total_views=2*((nl*nframes+1)/2);  /* has to be an even number */
 	cvmax(rhnframes, total_views);
@@ -2064,10 +2063,6 @@ long	deadtime_vsi_gapcore;
    WF_PULSE gzphase1a = INITPULSE; WF_PULSE gzphase1 = INITPULSE; WF_PULSE gzphase1d = INITPULSE;
    WF_PULSE gzphase2a = INITPULSE; WF_PULSE gzphase2 = INITPULSE; WF_PULSE gzphase2d = INITPULSE;
 /* -----------------------------------------------------*/
-
-/* LHG 6/14/22 : packet words needed for R1 dynamic attenuation from PCASL code*/
-short sspwm_dynr1[4]={SSPDS,SSPOC,SSPD,SSPDS};
-/*****/
 
 STATUS pulsegen(void)
 {
@@ -2626,12 +2621,6 @@ STATUS pulsegen(void)
 	/* Note that there is a 3ms fudge factor.  Come back and find where the error is!! */
 	fprintf(stderr, "\ntimessi: %d ", timessi );
 
-	/* :HG 6/14/22:   SSP packet for adjusting the R1 gain  (fromPCASL codes) */
-   	SSPPACKET(dynr1,
-		tlead + 4,
-		4,
-		sspwm_dynr1,);
-
 	SEQLENGTH(tadjustcore, RUP_RF(t_adjust - timessi ) ,tadjustcore);
 	fprintf(stderr, "\n ...  " );
 	getperiod(&deadtime_tadjustcore, &tadjustcore, 0);
@@ -3099,11 +3088,6 @@ STATUS scancore()
 	fprintf(stderr,"\ndomap = %d", domap);
 	fprintf(stderr,"\nM0frames = %d", M0frames);
 
-	/* LHG 6/14/22 - code from PCASL sequence adjusting R1 gaun - turn up prescan gain (pscR1)  
-	by "rgainasl" - eacc usint is 6 dB*/
-  	rgainasl += pscR1 ;
-	/***/
-
 	for (ifr = 0; ifr < nframes; ifr++)  {
 
 		/* LHG: 1/29/16: implementing GRAPPA along the z direction */
@@ -3444,12 +3428,6 @@ void doadjust(  int* trig)
 		setperiod(RUP_GRD(t_adjust-timessi - t_adjust_fudge-t_preBS) , &tadjustcore, 0);
 		boffset(off_preBScore);
 		startseq(0, MAY_PAUSE);
-
-		/* code from PCASL sequence to adjuest the R1 gain :   */
-		setwamp(SSPDS+RDC,&dynr1,0);
-		setwamp(SSPOC+RFHUBSEL,&dynr1,1);
-		setwamp(SSPD+R1IND+rgainasl-1,&dynr1,2);
-		/*************/
 	}
 
 
