@@ -34,14 +34,14 @@ float genspiral(
 		float R_accel,
 		float THETA_accel,
         	int   Ncenter,
-		int   doSERIOS
+		int   doSERIOS,
+		float SLEWMAX
 		)
 {
 
 	/* Scanner constants/restraints */	
 	float gamma = 26754.0;
 	float gammabar = gamma/2.0/M_PI;
-	float SLEWMAX = 16000;
 
 	/* Output files */
 	FILE *f_grad;

@@ -30,7 +30,7 @@ int main()
 	float THETA_accel = 1;
     	int Ncenter = 40;
         int doSERIOS = 0;
-
+	float SLEWMAX = 16000;
     
 	oprbw = 125*1e3;  /* Hz*/
 	deltaK = 1 / fFOV ;  /* cm^-1*/
@@ -71,7 +71,8 @@ int main()
 			R_accel,
 			THETA_accel, 
             Ncenter,
-            doSERIOS
+            doSERIOS,
+	    SLEWMAX
 		      );
         
         fprintf(stderr, 

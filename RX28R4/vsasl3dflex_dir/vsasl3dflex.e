@@ -448,6 +448,7 @@ float 	THETA_accel = 1.5;
 int	Ncenter = 20;
 float	ramp_frac = 2.0/3.0;
 float 	rotAngle;
+float 	SLEWMAX = 16000;
 
 float	se_slab_fraction = 1.5 with {0,10, , VIS, "fraction of the nominal z FOV excited by 180 degree pulse"};
 
@@ -610,7 +611,6 @@ static char supfailfmt[] = "Support routine %s exploded!";
 FILTER_INFO echo1_filt;
 FILTER_INFO aps2_filt;
 
-int genspiral(float D, int N, float Tmax, float dts);
 int genspiralcdvd(float D, int N, float Tmax, float dts, float alpha, float kmaxfrac);
 int gram_duty(void);
 
@@ -635,7 +635,8 @@ float genspiral(
 	float R_accel,
 	float THETA_accel,
 	int   Ncenter,
-        int   doSERIOS
+        int   doSERIOS,
+	float SLEWMAX
 	);
 
 int sph2cart(
@@ -1545,7 +1546,8 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 			R_accel,
 			THETA_accel,
 			Ncenter,
-			doSERIOS);
+			doSERIOS,
+			SLEWMAX);
 		
 		if( (slowDown-1)*(slowDown-1) >  0.0001 )	FID_dur = FID_dur * slowDown;
 
