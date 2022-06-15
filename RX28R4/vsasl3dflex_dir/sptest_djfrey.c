@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include "genspiral_djfrey.h"
+#include "genspiral.h"
 
 int main()
 {
@@ -56,7 +56,7 @@ int main()
 		fprintf(stderr, "\nNshots_theta= %d \nNshots phi \nFOV= %f",
 			Nshots_theta, Nshots_phi, fFOV );
 
-		slowDown = genspiral_djfrey(
+		slowDown = genspiral(
 			gx, 
 			gy, 
 			gz,

@@ -19,7 +19,7 @@
    int   Ncenter      N extra points to collect in the middle of trajectory. 
  
  */
-float genspiral_djfrey(
+float genspiral(
 		float *gx,
 		float *gy,
 		float *gz,

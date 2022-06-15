@@ -620,7 +620,7 @@ int calc_vsi_phs_from_velocity (int* vsi_pulse_mag, int* vsi_pulse_phs, int* vsi
 
 /*Spiral in-out for Spin Echo  functions from genspiral3d_io.e*/
 
-float genspiral_djfrey(
+float genspiral(
         float *gx,
         float *gy,
         float *gz,
@@ -1527,13 +1527,13 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
  
 	while( (slowDown-1.0)*(slowDown-1.0) >  0.0001 )
 	{
-		fprintf(stderr,"\nCalling genspiral_djfrey ... ");
+		fprintf(stderr,"\nCalling genspiral ... ");
 
 		Grad_len = (int)(FID_dur/4.0); /* n. samples for gradient waveform */
         /* DJF 6/13/22 Make sure Grad_len is always divisible by 4 */
         while (Grad_len%4>0) Grad_len+=1;
 	FID_dur = Grad_len*4.0;
-		slowDown = genspiral_djfrey(
+		slowDown = genspiral(
 			pfGx, pfGy, pfGz,
 			Grad_len, nl,
 			ramp_frac,
@@ -1562,7 +1562,7 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 
 	/* remember that gfov is in cm. */
 	/* Note to self... must ramp down to zero */
-	fprintf(stderr,"\nSuccessfully called genspiral_djfrey ");
+	fprintf(stderr,"\nSuccessfully called genspiral ");
 	fprintf(stderr,"\n checking Gradient amplitudes... ");
 
 	/* Find the max in each channel... should be myGmax, but making sure */
@@ -1980,7 +1980,7 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 #include "read_vsi_pulse.e"
 
 /* LHG 3.18.20:  spiral in-out in one shot */
-#include "genspiral_djfrey.h"
+#include "genspiral.h"
 
 
 @rsp
