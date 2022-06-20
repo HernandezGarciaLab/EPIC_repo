@@ -520,6 +520,9 @@ float 	flip_vsitag1 = 180;
 int 	wg_vsitag1 =  TYPRHO1 with {0, WF_MAX_PROCESSORS*2-1,
                                            TYPRHO1, VIS, , };
 
+/*LHG 6.14.22: extra gain during background suppressed ASL images*/
+int	rgainasl = 4;
+
 float	xmtaddScan;
 float	TX_scale = 1.0;
 /*
@@ -2066,6 +2069,10 @@ long	deadtime_vsi_gapcore;
    WF_PULSE gzphase2a = INITPULSE; WF_PULSE gzphase2 = INITPULSE; WF_PULSE gzphase2d = INITPULSE;
 /* -----------------------------------------------------*/
 
+/* LHG 6/14/22 : packet words needed for R1 dynamic attenuation from PCASL code*/
+short sspwm_dynr1[4]={SSPDS,SSPOC,SSPD,SSPDS};
+/*****/
+
 STATUS pulsegen(void)
 {
 	int waitloc, waitloc2;
@@ -2623,6 +2630,15 @@ STATUS pulsegen(void)
 	/* Note that there is a 3ms fudge factor.  Come back and find where the error is!! */
 	fprintf(stderr, "\ntimessi: %d ", timessi );
 
+	/* LHG 6/14/22:   SSP packet for adjusting the R1 gain  (fromPCASL codes) */
+   	SSPPACKET(dynr1,
+		tlead + 4,
+		4,
+		sspwm_dynr1,);
+	/*** Set Attenuator Lock (SSP Lock Control)***/
+	ATTENUATOR( attenuator_key, tlead+10 );
+	/**************/
+
 	SEQLENGTH(tadjustcore, RUP_RF(t_adjust - timessi ) ,tadjustcore);
 	fprintf(stderr, "\n ...  " );
 	getperiod(&deadtime_tadjustcore, &tadjustcore, 0);
@@ -2657,6 +2673,9 @@ STATUS scancore(void);
 int doleaf(FILE* pfRotMatFile, int leafn, int framen, int slicen, int* trig, int* bangn, int dabop, int dtype); 
 
 void get_rfamp(int ntab, int* rfamp);
+
+/* LHG 6.17.22 : code for chaning values of R1 gain */
+void set_dynr1(int r1);
 
 
 /*---------------------------------------------------------
@@ -3172,6 +3191,21 @@ STATUS scancore()
 	/*cleaning up:*/
 	fclose(pfRotMatFile);
 
+	/*LHG 6.15.22:  restore  R1 gain to its value   
+	setwamp(SSPDS+RDC,&dynr1,0);
+	setwamp(SSPOC+RFHUBSEL,&dynr1,1);
+	setwamp(SSPD+R1IND+pscR1-1,&dynr1,2);
+
+	//setwamp(SSPDS,&dynr1,0);
+	attenlockon(&attenuator_key);
+
+	boffset(off_tadjustcore);
+	startseq(0, MAY_PAUSE);
+
+	/********************/
+	fprintf(stderr,"\nRestoring R1 gain to %d",pscR1);
+	set_dynr1(pscR1);
+
 	/* tell 'em it's over */
 	boffset(off_pass);
 	setwamp(SSPD+DABPASS+DABSCAN, &endpass, 2);
@@ -3430,12 +3464,45 @@ void doadjust(  int* trig)
 		setperiod(RUP_GRD(t_adjust-timessi - t_adjust_fudge-t_preBS) , &tadjustcore, 0);
 		boffset(off_preBScore);
 		startseq(0, MAY_PAUSE);
+
+		/* code from PCASL sequence to adjust the R1 gain dynamically :  /
+		setwamp(SSPDS+RDC,&dynr1,0);
+		setwamp(SSPOC+RFHUBSEL,&dynr1,1);
+		setwamp(SSPD+R1IND+rgainasl-1,&dynr1,2);
+		/* reset attenuator locks 
+		if (rspent == L_SCAN)
+		{
+			//setwamp(SSPDS|RDC,&dynr1,0);
+			attenlockoff(&attenuator_key);
+		}  else {
+			//setwamp(SSPDS,&dynr1,0);
+			attenlockoff(&attenuator_key);
+		/*************/
+		fprintf(stderr,"\nReturned pscR1: %d, rgainasl: %d", pscR1, rgainasl);
+		if ((int)(rgainasl + pscR1) <= 11)
+		{
+			fprintf(stderr, "\n--> Setting R1 gain to %d", rgainasl+pscR1);
+			set_dynr1(rgainasl + pscR1);
+		}
+		else
+		{
+			fprintf(stderr, "\n--> Setting R1 gain to 11 since rgainasl + pscR1 > 11");
+			set_dynr1(11);
+		}
 	}
 
 
 	boffset(off_tadjustcore);
 	startseq(0, MAY_PAUSE);
 
+}
+
+void set_dynr1( int r1 )
+{
+	attenlockoff(&attenuator_key);
+	setwamp(SSPDS+RDC,&dynr1,0);
+	setwamp(SSPOC+RFHUBSEL,&dynr1,1);
+	setwamp(SSPD+R1IND+r1-1,&dynr1,2);
 }
 
 
