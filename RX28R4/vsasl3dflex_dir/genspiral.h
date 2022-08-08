@@ -1,221 +1,191 @@
-/*
-   genspispiral_djfrey
-   Generate 3 spiral in-out waveforms for a 3D spiral trajectory
-   to be used in a spin echo.  We want the center of k-space to
-   be sampled at the center of the echo
-   float *gx,		pointer to gradient waveform data
-   float *gy, 		(G/cm)
-   float *gz,
-   int   Npoints,		length of gradient waveform data buffers
-   int   iNshots_theta,	Number of interleaves along the azimuthal angle
-   int   iNshots_phi,	Number of interleaves along the elevation angle
-   float fFOV,		image space Field of View (cm)
-   float fXres,		image space resolution (cm)
-   float fZres,		image space resolution- slice thickness (cm)
-   float fDeltaT		waveform sample time (granularity) in sec.
-   float GMAX          Max Alow Grad. Amp.
-   float R_accel    controls shape of radial position: R=t^R_accel
-   float THETA_Accel controls number of turns of the spiral. 1 is default. 2 is twice as many  as calculated.
-   int   Ncenter      N extra points to collect in the middle of trajectory. 
- 
- */
-float genspiral(
-		float *gx,
-		float *gy,
-		float *gz,
-		int   Npoints,
-		int   Nshots,
-        float ramp_frac,
-		float fFOV,
-		float fXres,
-		float fZres,
-		float fDeltaT,
-		float GMAX,  
-		float R_accel,
-		float THETA_accel,
-        	int   Ncenter,
-		int   doSERIOS,
-		float SLEWMAX
-		)
-{
+int conv(float* x, int lenx, float* h, int lenh, float* y);
+int recenter(float* x, int lenx, float xmin, float xmax);
+int diff(float* x, int lenx, float di, float* y);
+float getmaxabs(float *x, int lenx);
 
-	/* Scanner constants/restraints */	
-	float gamma = 26754.0;
-	float gammabar = gamma/2.0/M_PI;
-
-	/* Output files */
-	FILE *f_grad;
-	FILE *f_ktraj_cart;
-	FILE *f_ktraj_sph;
-	FILE *f_smooth;
-
-	/* Calculation of k-space info */
-	float Kzmax = 1.0/fZres/2.0;
-	float Kmax = 1.0/fXres/2.0;
-	float dK = 1.0/fFOV;
-	int Nturns = (int) (THETA_accel/Nshots * Kmax/dK/2.0 + 1);
-	int Nramp = (int) (ramp_frac * Npoints/2.0/Nturns);
-
-	/* Calculation of sampling spacing */
-	float dn = 2.0/Npoints;
+float genspiral(float* gx, float* gy, float* gz, int Grad_len,
+		float R_accel, float THETA_accel,
+		int N_center, float ramp_frac,
+		int doXrot, int doYrot,
+		float fov, int dim, float dt, float slthick,
+		int N_slices, int N_leaves,
+		float SLEWMAX, float GMAX)
+{		
+	/* Distribute points */
+	int N_ramp = round((float)Grad_len * ramp_frac);
+	if (N_ramp % 2 > 0) { /* if N_ramp is not even, donate a point to the center */
+		N_ramp--;
+		N_center++;
+	}
+	int N_points = Grad_len - N_center;
+	if (N_points % 2 > 0) { /* if N_points is not even, donate a point to the center */
+		N_points--;
+		N_center++;
+	}
+	
+	/* Initialize loop variables */
 	int n;
+	float dn;
+	float val;
+	
+	/* Calculate Kspace information */
+	float gamma = 26754.0 / 2.0 / M_PI;
+	float dk = 1.0 / fov;
+	float Kxymax = (float)dim / fov / 2.0;
+	float Kzmax = (doXrot || doYrot) ? (Kxymax) : (dim / (float)(slthick * N_slices) / 2.0);
+	float N_turns = Kxymax / dk / 2.0 * THETA_accel / (float)N_leaves + 1;
 
-	/* Initializing r, theta arrays and smoothing weights */
-    float r_in[Npoints/2];
-    float theta_in[Npoints/2];
-	float r[Npoints+Ncenter];
-	float theta[Npoints+Ncenter];
-	float w_ramp;
-    float w_rampup[Npoints/2];
-    float w_rampdown[Npoints/2];
-	for (n=0; n<(Npoints+Ncenter); n++)
-	{
-		r[n] = 0;
-		theta[n] = 0;
+	/* Create smoothing kernel */
+	float kern[N_ramp];
+	dn = 2.0 / (float)N_ramp;
+	for (n = 0; n < N_ramp; n++) {
+		val = exp(-pow(M_PI * dn * (n - (float)(N_ramp - 1) / 2.0), 2 ));
+		kern[n] = val;
+	}
+	
+	/* Define piece-wise unsmoothed radius function for traj polar coordinates */
+	float r_spiky[Grad_len - N_ramp];
+	for (n = 0; n < Grad_len - N_ramp; n++) r_spiky[n] = 0.0;
+	dn = 2.0 / ((float)N_points - 2.0 * N_ramp);
+	for (n = 1; n < N_points / 2 - N_ramp; n++) {
+		val = pow(1.0 - (float)n * dn, R_accel);
+		r_spiky[n] = val;
+		r_spiky[N_points + N_center - N_ramp - 1 - n] = val;
+	} 
+	/* Convolve r with kernel to produced smoothed radius function */
+	float r[Grad_len];
+	conv(r_spiky, Grad_len - N_ramp, kern, N_ramp, r);
+	recenter(r, Grad_len, 0.0, Kxymax);
+	
+	/* Define piece-wise angle function for traj polar coordinates */
+	float theta[Grad_len];
+	for (n = 0; n < Grad_len; n++) theta[n] = 0.0;
+	dn = 2.0 / (float)N_points;
+	for (n = 0; n < N_points/2; n++) {
+		val = fabs(N_turns * M_PI * (float)(n - N_points/2) * dn);
+		theta[n] = val;
+		theta[N_points + N_center - n] = val + M_PI;
 	}
 
-	/* Calculating r and theta with smoothing weights */
-	for (n=0; n<(Npoints/2); n++)
-	{
-        /* Calculate r and theta for in-spiral */
-        r_in[Npoints/2-1-n] = Kmax * pow(fabs(n*dn), R_accel);
-        theta_in[Npoints/2-1-n] = fabs(n*dn) * Nturns * M_PI + M_PI/2;
-        
-        /* Calculate smoothing weights */
-        w_rampup[n] = 1 - exp( -pow((float)n/Nramp,4) );
-        w_rampdown[Npoints/2-1-n] = 1 - exp( -pow((float)n*2/Nramp,4) );
-    }
-
-    /* Apply in-spiral and smoothing to overall r and theta arrays */
-    f_smooth = fopen("smoothing.txt","w");
-    for (n=0; n<(Npoints/2); n++)
-	{
-        /* Calculate overall smoothing function */
-        w_ramp = w_rampup[n] * w_rampdown[n];
-        fprintf(f_smooth,"%f\n",w_ramp);
-
-        /* Apply in-spiral */
-        r[n] = w_ramp * r_in[n];
-        theta[n] = theta_in[n];
-        
-        /* Apply out-spiral as mirror of in-spiral */
-        r[Npoints+Ncenter-1-n] = w_ramp * r_in[n];
-        theta[Npoints+Ncenter-1-n] = theta_in[n] + M_PI;
-	}
-    fclose(f_smooth);
-
-	/* Rescale so max(R) = Kmax */
-	float Rmax = 0;
-	for (n=0; n<(Npoints+Ncenter); n++)
-		if (r[n]>Rmax) Rmax = r[n];
-	for (n=1; n<(Npoints+Ncenter); n++)
-		r[n] *= Kmax/Rmax;
-
-	/* Initialize k arrays for translating spherical coordinates into cartesian coordinates */
-	float kx[Npoints+Ncenter];
-	float ky[Npoints+Ncenter];
-	float kz[Npoints+Ncenter];
-	for (n=0; n<(Npoints+Ncenter); n++)
-	{
-		kx[n] = 0;
-		ky[n] = 0;
+	/* Translate polar coordinates into cartesian */
+	float kx[Grad_len], ky[Grad_len], kz[Grad_len];
+	for (n = 0; n < Grad_len; n++) {
+		kx[n] = r[n] * cos(theta[n]);
+		ky[n] = r[n] * sin(theta[n]);
 		kz[n] = 0;
 	}
-
-	/* Calculate x and y trajectories */
-	for  (n=0; n<(Npoints+Ncenter); n++)
-	{
-		kx[n] = r[n]*cos(theta[n]);
-		ky[n] = r[n]*sin(theta[n]);
+	if ( !(doXrot || doYrot) ) { /* Create kz ramp for SOS case */
+		float kz_spiky[Grad_len - N_ramp];
+		kz_spiky[0] = 0.0;
+		kz_spiky[Grad_len - N_ramp - 1] = 0.0;
+		for (n = 1; n < Grad_len - N_ramp - 1; n++) kz_spiky[n] = 1.0;
+		conv(kz_spiky, Grad_len - N_ramp, kern, N_ramp, kz);
+		recenter(kz, Grad_len, 0.0, Kzmax);
 	}
 
-	/* Calculate z trajectory */
-	if (!doSERIOS)
-	{
-		for (n=0; n<((Npoints+Ncenter)/2); n++)
-		{	
-			kz[n] = Kzmax*(1 - exp( -pow((float)n/Nramp,4) ));
-			kz[Npoints+Ncenter-1-n] = kz[n];
-		}
+	/* Calculate gradient waveforms by differentiating trajectory */
+	diff(kx, Grad_len, dt*gamma, gx);
+	diff(ky, Grad_len, dt*gamma, gy);
+	diff(kz, Grad_len, dt*gamma, gz);
+
+	/* Calculate slew waveforms by differentiating gradient */
+	float sx[Grad_len];
+	float sy[Grad_len];
+	float sz[Grad_len];
+	diff(gx, Grad_len, dt, sx);
+	diff(gy, Grad_len, dt, sy);
+	diff(gz, Grad_len, dt, sz);
+
+	/* Determine slowFactor from maximum gradient and slew amplitudes */
+	float slewmax[3] = {getmaxabs(sx, Grad_len), getmaxabs(sy, Grad_len), getmaxabs(sz, Grad_len)};
+	float gmax[3] = {getmaxabs(gx, Grad_len), getmaxabs(gy, Grad_len), getmaxabs(gz, Grad_len)};
+	float slowFactor_slew = sqrt(getmaxabs(slewmax, 3) / SLEWMAX);
+	float slowFactor_grad = getmaxabs(gmax, 3) / GMAX;
+	float slowFactor = fmax(slowFactor_slew,slowFactor_grad);
+
+	/* Print trajectories to file */
+	FILE* f_ktraj_sph = fopen("./ktraj_sph.txt","w");
+	FILE* f_ktraj_cart = fopen("./ktraj_cart.txt","w");
+	FILE* f_grad = fopen("./grad.txt","w");	
+	FILE* f_slew = fopen("./slew.txt","w");
+	for (n = 0; n < Grad_len; n++) {
+		fprintf(f_ktraj_sph, "%f \t%f\n", r[n], theta[n]);
+		fprintf(f_ktraj_cart, "%f \t%f \t%f\n", kx[n], ky[n], kz[n]);
+		fprintf(f_grad, "%f \t%f \t%f\n", gx[n], gy[n], gz[n]);
+		fprintf(f_slew, "%f \t%f \t%f\n", sx[n], sy[n], sz[n]);
 	}
-
-	/* Initialize gradient waveforms */
-	for (n=0; n<(Npoints+Ncenter); n++)
-	{
-		gx[n] = 0;
-		gy[n] = 0;
-		gz[n] = 0;
-	}
-
-	/* Calculate gradient waveforms as the integral of k-space trajectory */
-	float areax = 0;
-	float areay =0;
-	float areaz = 0;	
-	for (n=1; n<(Npoints+Ncenter); n++)
-	{
-		gx[n] = (kx[n] - kx[n-1])/fDeltaT/gammabar;
-		gy[n] = (ky[n] - ky[n-1])/fDeltaT/gammabar;
-		gz[n] = (kz[n] - kz[n-1])/fDeltaT/gammabar;
-
-		areax+=gx[n];
-		areay+=gy[n];
-		areaz+=gz[n];
-	}
-
-	/* Determine max slew rates and max gradients*/
-	float slewx, slewy, slewz;
-	float maxslewx = 0;
-	float maxslewy = 0;
-	float maxslewz = 0;
-	float maxgx = 0;
-	float maxgy = 0;
-	float maxgz = 0;
-	for (n=0; n<Npoints+Ncenter-2; n++)
-	{
-		slewx = fabs(gx[n+1] - gx[n]) / fDeltaT;
-		if (slewx > maxslewx)
-			maxslewx = slewx;
-		if (fabs(gx[n]) > maxgx)
-			maxgx = fabs(gx[n]);
-
-		slewy = fabs(gy[n+1] - gy[n]) / fDeltaT;
-		if (slewy > maxslewy)
-			maxslewy = slewy;
-		if (fabs(gy[n]) > maxgy)
-			maxgy = fabs(gy[n]);
-
-		slewz = fabs(gz[n+1] - gz[n]) /fDeltaT;
-		if (slewz > maxslewz)
-			maxslewz = slewz;
-		if (fabs(gz[n]) > maxgz)
-			maxgz = fabs(gz[n]);
-	}
-
-	/* Initialize slowFactor */
-	float slowFactor = 0;
-	
-	/* Make sure max slew rate is not exceeded */
-	if (fabs(maxslewx/SLEWMAX) >= slowFactor) slowFactor = sqrt(fabs(maxslewx/SLEWMAX));
-	if (fabs(maxslewy/SLEWMAX) >= slowFactor) slowFactor = sqrt(fabs(maxslewy/SLEWMAX));
-	if (fabs(maxslewz/SLEWMAX) >= slowFactor) slowFactor = sqrt(fabs(maxslewz/SLEWMAX));
-	
-	/* Make sure max gradient is not exceeded */
-	if (fabs(maxgx/GMAX) >= slowFactor) slowFactor = fabs(maxgx/GMAX);
-	if (fabs(maxgy/GMAX) >= slowFactor) slowFactor = fabs(maxgy/GMAX);
-	if (fabs(maxgz/GMAX) >= slowFactor) slowFactor = fabs(maxgz/GMAX);
-
-	/* Write arrays out to file */
-	f_grad = fopen("grad.txt","w");
-	f_ktraj_cart = fopen("ktraj_cart.txt","w");
-	f_ktraj_sph = fopen("ktraj_sph.txt","w");
-	for (n=0; n<Npoints+Ncenter; n++) {
-		fprintf(f_grad, "%f\t%f\t%f\n", gx[n], gy[n], gz[n]);
-		fprintf(f_ktraj_cart, "%f\t%f\t%f\n", kx[n], ky[n], kz[n]);
-		fprintf(f_ktraj_sph, "%f\t%f\n", r[n], theta[n]);
-	}
-	fclose(f_grad);
-	fclose(f_ktraj_cart);
 	fclose(f_ktraj_sph);
-
+	fclose(f_ktraj_cart);
+	fclose(f_grad);
+	fclose(f_slew);
+	
+	/* Print info */
+	fprintf(stderr,"genspiral(): finished generating spiral\n");
+	fprintf(stderr,"genspiral(): calculated slowFactor = %f",slowFactor);
+	if (slowFactor_grad > slowFactor_slew)
+		fprintf(stderr," (rate limited by GMAX)\n");
+	else
+		fprintf(stderr," (rate limited by SLEWMAX)\n");
+	fprintf(stderr,"genspiral(): final echo time = %fms\n",(float)Grad_len*dt*1e3);
+	
 	return slowFactor;
-}
+};
+
+int conv(float* x, int lenx, float* h, int lenh, float* y)
+{
+	int leny = lenx + lenh;
+	int i, j;
+	int h_start, x_start, x_end;
+	float val;
+
+	for (i = 0; i < leny; i++) {
+		x_start = fmax(0, i-lenh+1);
+		x_end = fmin(i+1, lenx);
+		h_start = fmin(i, lenh-1);
+
+		val = 0;
+		for (j = x_start; j < x_end; j++)
+			val += h[h_start--] * x[j];
+
+		y[i] = val;
+	}
+
+	return 0;
+};
+
+int recenter(float* x, int lenx, float xmin, float xmax)
+{	
+	int i;
+	float recordmax = x[0];
+	float recordmin = x[0];
+	for (i = 1; i < lenx; i++) {
+		if (x[i] > recordmax) recordmax = x[i];
+		if (x[i] < recordmin) recordmin = x[i];
+	}
+
+	for (i = 1; i < lenx; i++) {
+		x[i] = (x[i] - recordmin) / (recordmax - recordmin) * (xmax - xmin) - xmin;
+	}
+	
+	return 0;
+};
+
+int diff(float* x, int lenx, float di, float* y)
+{
+	int i;
+	for (i = 0; i < lenx; i++) y[i] = 0;
+	for (i = 1; i < lenx - 1; i++)
+		y[i] = (x[i] - x[i-1]) / di;
+
+	return 0;
+};
+
+float getmaxabs(float *x, int lenx)
+{
+	int i;
+	float recordmax = x[0];
+	for (i = 1; i < lenx; i++)
+		if (fabs(x[i]) > recordmax) recordmax = fabs(x[i]);
+
+	return recordmax;
+};
