@@ -444,7 +444,7 @@ int	FID_dur;
 float 	R_accel= 0.5;
 float 	THETA_accel = 1.0;
 int	Ncenter = 20;
-float	ramp_frac = 1.0/10.0;
+float	ramp_frac = 0.75;
 float 	rotAngle;
 float 	SLEWMAX = 16000;
 
