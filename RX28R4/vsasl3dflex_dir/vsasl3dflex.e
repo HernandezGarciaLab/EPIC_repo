@@ -288,8 +288,6 @@ int minte;
 int seqtr = 0 with {0,,1,VIS, "total time to play seq",};
 int endtime = 500ms with {0,,,,"time at end of seq in rt mode",};
 
-int extraaqpts = 20; /* DJF 6/14/22 */
-
 int vdflag = 0 with {0,1,,VIS, "variable-density flag",};
 float alpha = 3.6 with {1.01,200,,VIS, "variable-density parameter alpha",};
 float kmaxfrac = 0.5 with {0.05,0.95,,VIS, "fraction of kmax to switch from constant to variable density spiral",};
@@ -1525,7 +1523,7 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 		oprbw, gfov, Kmax, deltaK, FID_len, FID_dur, Grad_len );
 
 	float myGmax = spiralGmax;
-	int Grad_len = round(FID_dur/4.0);
+	Grad_len = round(FID_dur/4.0);
 
 	float tol_slowDown = 1e-4;
 	float slowDown = 1.0;
@@ -1821,7 +1819,7 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 	cvmax(rhfrsize, 32768);		/* for now  */
 	/*LHG 7.10.10:  we want the ramp! */
 	/*rhfrsize = (res_gx-RES_GRAMP)*4us/tsp;      /* num points sampled */
-	rhfrsize = Grad_len + extraaqpts;      /* num points sampled */
+	rhfrsize = Grad_len;      /* num points sampled */
 
 	total_views=2*((nl*nframes+1)/2);  /* has to be an even number */
 	cvmax(rhnframes, total_views);
@@ -1981,7 +1979,6 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 		}
 
 	}
-
 	return SUCCESS;
 } /* End-Of-Predownload */
 
@@ -1996,7 +1993,6 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 
 /* LHG 3.18.20:  spiral in-out in one shot */
 #include "genspiral.h"
-
 
 @rsp
 
@@ -2099,6 +2095,9 @@ STATUS pulsegen(void)
 
 	/* first core is the tip down pulse (90) */
 	fprintf(stderr, "\npulsegen: generating RF1 pulse (90) ... ");
+	fprintf(stderr, "RUP_GRD(tlead + pw_gzrf1a + psd_rf_wait) = ");
+	fprintf(stderr, "RUP_GRD(%f + %f + %f) = ", tlead, pw_gzrf1a, psd_rf_wait);
+	fprintf(stderr, "%f\n", RUP_GRD(tlead + pw_gzrf1a + psd_rf_wait));
 	SLICESELZ(rf1,
 			RUP_GRD(tlead + pw_gzrf1a + psd_rf_wait),
 			pwrf1,
@@ -2242,7 +2241,7 @@ STATUS pulsegen(void)
 				multiplymatrix(3,3,1,rotmatx,Gvec,Gvec_rot);
 				
 				/* dot product with rd vector to get total phase gain */
-				multiplymatrix(1,3,1,Gvec,rdvec,phsgain);
+				multiplymatrix(1,3,1,Gvec_rot,rdvec,phsgain);
 
 				/* Integrate phase gain */
 				if (kill_rx_phase) ts[j] = (short)(0.0) & ~WEOS_BIT;
