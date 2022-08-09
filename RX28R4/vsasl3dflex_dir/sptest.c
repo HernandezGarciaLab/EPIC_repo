@@ -36,10 +36,9 @@ int main(void)
 	int N_leaves = 1;
 	int N_ramp;
 
-	float tol = 1e-4;
+	float tol_slowDown = 1e-4;
 	float slowDown = 1.0;
 	int itr_slowDown = 0;
-
 	do {
 		for (int n = 0; n < MAX_GRAD_LEN; n++) {
 			gx[n] = 0;
@@ -57,7 +56,7 @@ int main(void)
 				fov, dim, dt, slthick,
 				N_slices, N_leaves,
 				SLEWMAX, GMAX);
-	} while (pow(slowDown - 1.0, 2) > tol && itr_slowDown <= 50);
+	} while (pow(slowDown - 1.0, 2) > tol_slowDown && itr_slowDown <= 50);
 
 	if (itr_slowDown == 50)
 		fprintf(stderr,"warning: max iteration for genspiral slowDown reached, slowDown = %f\n", slowDown);

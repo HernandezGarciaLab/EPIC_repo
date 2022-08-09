@@ -624,23 +624,24 @@ int calc_vsi_phs_from_velocity (int* vsi_pulse_mag, int* vsi_pulse_phs, int* vsi
 /*Spiral in-out for Spin Echo  functions from genspiral3d_io.e*/
 
 float genspiral(
-        float *gx,
-        float *gy,
-        float *gz,
-        int   iGsize,
-        int   Nshots_theta,
-	float ramp_frac,
-        float fFOV,
-        float fXres,
-	float fZres,
-        float fDeltaT,
-        float GMAX,
+	float* gx,
+	float* gy,
+	float* gz,
+	int Grad_len,
 	float R_accel,
 	float THETA_accel,
-	int   Ncenter,
-        int   doSERIOS,
-	float SLEWMAX
-	);
+	int N_center,
+	float ramp_frac,
+	int doXrot,
+	int doYrot,
+	float fov,
+	int dim,
+	float dt,
+	float slthick,
+	int N_slices,
+	int N_leaves,
+	float SLEWMAX,
+	float GMAX);
 
 int sph2cart(
         float* pfx,
@@ -1523,38 +1524,47 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 		"\noprbw: %f \ngfov= %f cm \nKmax= %f \ndeltaK= %f \nFID_len = %d \nFID_dur =%d usec. \nGrad_len = %d \n",
 		oprbw, gfov, Kmax, deltaK, FID_len, FID_dur, Grad_len );
 
+	float myGmax = spiralGmax;
+	int Grad_len = round(FID_dur/4.0);
 
-	float slowDown=10.0;
-	float myGmax;
-	myGmax = spiralGmax;
-	int doSERIOS = (doXrot == 1 || doYrot == 1) ? (1) : (0);   
- 
-	while( (slowDown-1.0)*(slowDown-1.0) >  0.0001 )
-	{
-		fprintf(stderr,"\nCalling genspiral ... ");
-
-		Grad_len = (int)(FID_dur/4.0); /* n. samples for gradient waveform */
-        /* DJF 6/13/22 Make sure Grad_len is always divisible by 4 */
-        while (Grad_len%4>0) Grad_len+=1;
-	FID_dur = Grad_len*4.0;
-		slowDown = genspiral(
-			pfGx, pfGy, pfGz,
-			Grad_len, nl,
-			ramp_frac,
-			gfov,
-			gfov/(float)opxres,
-			opslthick/10.0,
-			4.0e-6,
-			myGmax,
-			R_accel,
-			THETA_accel,
-			Ncenter,
-			doSERIOS,
-			SLEWMAX);
+	float tol_slowDown = 1e-4;
+	float slowDown = 1.0;
+	int itr_slowDown = 0;
+	do {
+		for (int n = 0; n < MAX_GRAD_LEN; n++) {
+			pfGx[n] = 0;
+			pfGy[n] = 0;
+			pfGz[n] = 0;
+		}
+		itr_slowDown++;
 		
-		if( (slowDown-1)*(slowDown-1) >  0.0001 )	FID_dur = FID_dur * slowDown;
+		Grad_len = round((float)Grad_len * slowDown);
+		while (Grad_len % 4 > 0) Grad_len++;
+		slowDown = genspiral(pfGx,
+				pfGy,
+				pfGz,
+				Grad_len,
+				R_accel,
+				THETA_accel,
+				Ncenter,
+				ramp_frac,
+				doXrot,
+				doYrot,
+				gfov,
+				opxres,
+				4.0e-6,
+				opslthick/10.0,
+				opslquant,
+				nl,
+				SLEWMAX,
+				myGmax);
+	} while (pow(slowDown - 1.0, 2) > tol_slowDown && itr_slowDown <= 50);
 
-	}
+	if (itr_slowDown == 50)
+		fprintf(stderr,"warning: max iteration for genspiral slowDown reached, slowDown = %f\n", slowDown);
+
+	FID_dur = 4.0 * (float)Grad_len;
+
 	fprintf(stderr, "\nFinal  spiral IN-OUT is: ");
 	fprintf(stderr,
 		"\noprbw: %f \ngfov= %f cm \nKmax= %f \ndeltaK= %f \nFID_len = %d \nFID_dur =%d usec. \nGrad_len = %d \n",
