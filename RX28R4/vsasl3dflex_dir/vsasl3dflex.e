@@ -1531,7 +1531,7 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 	float slowDown = 1.0;
 	int itr_slowDown = 0;
 	do {
-		for (int n = 0; n < MAX_GRAD_LEN; n++) {
+		for (int n = 0; n < GRESMAX; n++) {
 			pfGx[n] = 0;
 			pfGy[n] = 0;
 			pfGz[n] = 0;
