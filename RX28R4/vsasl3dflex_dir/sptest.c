@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include "genspiral.h"
 
+#define GRESMAX 50000
+
 float genspiral(float* gx, float* gy, float* gz, int Grad_len,
 		float R_accel, float THETA_accel,
 		int N_center, float ramp_frac,
@@ -14,11 +16,10 @@ float genspiral(float* gx, float* gy, float* gz, int Grad_len,
 
 int main(void)
 {
-	int MAX_GRAD_LEN = 50000;
 	int Grad_len = 2000;
-	float gx[MAX_GRAD_LEN];
-	float gy[MAX_GRAD_LEN];
-	float gz[MAX_GRAD_LEN];
+	float gx[GRESMAX];
+	float gy[GRESMAX];
+	float gz[GRESMAX];
 	float R_accel = 0.5;
 	float THETA_accel = 1;
 	int N_center = 50;
@@ -34,13 +35,12 @@ int main(void)
 	float slthick = 0.8; /* cm */
 	int N_slices = 17;
 	int N_leaves = 1;
-	int N_ramp;
 
 	float tol_slowDown = 1e-4;
 	float slowDown = 1.0;
 	int itr_slowDown = 0;
 	do {
-		for (int n = 0; n < MAX_GRAD_LEN; n++) {
+		for (int n = 0; n < GRESMAX; n++) {
 			gx[n] = 0;
 			gy[n] = 0;
 			gz[n] = 0;

@@ -444,9 +444,9 @@ int	FID_len;
 int	Grad_len;
 int	FID_dur;
 float 	R_accel= 0.5;
-float 	THETA_accel = 1.5;
+float 	THETA_accel = 1.0;
 int	Ncenter = 20;
-float	ramp_frac = 2.0/3.0;
+float	ramp_frac = 1.0/10.0;
 float 	rotAngle;
 float 	SLEWMAX = 16000;
 
@@ -917,8 +917,8 @@ int cveval()
 	R_accel = opuser13;
 
 	cvdesc(opuser14, "K-space rotation speed factor (2=twice the number of turns)");
-	cvdef(opuser14, 1.5);
-	opuser14 = 1.5;
+	cvdef(opuser14, 1.0);
+	opuser14 = 1.0;
 	cvmin(opuser14,0.5);
 	cvmax(opuser14, 5.0);
 	THETA_accel = opuser14;
