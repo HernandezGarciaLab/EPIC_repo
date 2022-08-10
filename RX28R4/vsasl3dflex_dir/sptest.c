@@ -7,18 +7,6 @@
 
 #define GRESMAX 50000
 
-float genspiral(float* gx, float* gy, float* gz, int Grad_len,
-		float R_accel, float THETA_accel,
-		int N_center, float ramp_frac, int isSOS,
-		float fov, int dim, float dt, float slthick,
-		int N_slices, int N_leaves,
-		float SLEWMAX, float GMAX);
-
-int genviews(float* T_0,
-		int N_slices, int N_leaves,
-		char* rotorder, int doCAIPI,
-		float rotAnglex, float rotAngley, float rotAnglez);
-
 int main(void)
 {
 	int Grad_len = 2000;
@@ -67,11 +55,12 @@ int main(void)
 	if (itr_slowDown == 50)
 		fprintf(stderr,"warning: max iteration for genspiral slowDown reached, slowDown = %f\n", slowDown);
 
+	float T_all[N_slices * N_leaves][9];
 	float T_0[9] = {1,0,0,
 		0,1,0,
 		0,0,1};
 	char rotorder[3] = "yxz";
-	genviews(T_0,N_slices,N_leaves,rotorder,1,angleXrot,angleYrot,angleZrot);
+	genviews(T_0,T_all,N_slices,N_leaves,rotorder,1,angleXrot,angleYrot,angleZrot);
 
 	return 0;
 };
