@@ -5,8 +5,7 @@ float getmaxabs(float *x, int lenx);
 
 float genspiral(float* gx, float* gy, float* gz, int Grad_len,
 		float R_accel, float THETA_accel,
-		int N_center, float ramp_frac,
-		int doXrot, int doYrot,
+		int N_center, float ramp_frac, int isSOS,
 		float fov, int dim, float dt, float slthick,
 		int N_slices, int N_leaves,
 		float SLEWMAX, float GMAX)
@@ -16,7 +15,7 @@ float genspiral(float* gx, float* gy, float* gz, int Grad_len,
 	float gamma = 26754.0 / 2.0 / M_PI;
 	float dk = 1.0 / fov;
 	float Kxymax = (float)dim / fov / 2.0;
-	float Kzmax = (doXrot || doYrot) ? (Kxymax) : (dim / (float)(slthick * N_slices) / 2.0);
+	float Kzmax = (isSOS) ? (Kxymax) : (dim / (float)(slthick * N_slices) / 2.0);
 	float N_turns = Kxymax / dk / 2.0 * THETA_accel / (float)N_leaves + 1;
 	
 	int N_ramp = round((float)(Grad_len - N_center) / (float)N_turns * ramp_frac);
@@ -74,7 +73,7 @@ float genspiral(float* gx, float* gy, float* gz, int Grad_len,
 		ky[n] = r[n] * sin(theta[n]);
 		kz[n] = 0;
 	}
-	if ( !(doXrot || doYrot) ) { /* Create kz ramp for SOS case */
+	if (isSOS) { /* Create kz ramp for SOS case */
 		float kz_spiky[Grad_len - N_ramp];
 		kz_spiky[0] = 0.0;
 		kz_spiky[Grad_len - N_ramp - 1] = 0.0;
