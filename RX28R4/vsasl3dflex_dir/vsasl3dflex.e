@@ -444,8 +444,10 @@ int	FID_dur;
 float 	R_accel= 0.5;
 float 	THETA_accel = 1.0;
 int	Ncenter = 20;
-float	ramp_frac = 0.75;
-float 	rotAngle;
+float	ramp_frac = 1.0;
+float 	rotAnglex; /* Angle of rotation about x-axis for SERIOS */
+float	rotAngley; /* Angle of rotation about y-axis for SERIOS */
+float	rotAnglez; /* Angle of rotation about z-axis for SERIOS and SOS */
 float 	SLEWMAX = 16000;
 
 float	se_slab_fraction = 1.5 with {0,10, , VIS, "fraction of the nominal z FOV excited by 180 degree pulse"};
@@ -463,7 +465,7 @@ float 	spiralGymax = 0.0;
 float 	spiralGzmax = 0.0;
 
 /* LHG 7.10.20: zero out RX phase for troubleshoor=ting: */
-int	kill_rx_phase = 1;
+int	kill_rx_phase = 0;
 /*  the 90 can be rotated and used to limit the FOV */
 int	doRotated90 = 0 with {0, 3, , VIS, "Forces the 90 degree pulse to the : 1=X axis, 2=Y axis, 3=Z axis "};
 float 	yfov = 10.0;	/* LHG 12.22.18: this sequence allows rotation of the 90 degree pulse independently of the 180.  i
@@ -534,12 +536,8 @@ int 	wg_dummyrf =  TYPRHO1 with {0, WF_MAX_PROCESSORS*2-1,
 @inline Prescan.e PSipgexport
 s32 savrot[TRIG_ROT_MAX][9];   /* copy of rotation matrices */
 
-/* DJF 4.25.22 Initialization of pre-computed view parm tables */
-float xi[MAXNUMECHOES];
-float psi[MAXNUMECHOES];
-float phi[MAXNUMECHOES];
-float kzf[MAXNUMECHOES];
-float rotmatrices[MAXNUMECHOES][9];
+/* DJF 4.25.22 Initialization of pre-computed transformation matrix tables */
+float T_all[MAXNUMECHOES][9];
 
 RF_PULSE_INFO rfpulseInfo[RF_FREE];
 /*3.18.20: 3D spiral in-out */
@@ -601,8 +599,7 @@ int	tcounter = 0;
 #include "sysDep.h"
 #include "sysDepSupport.h"
 #include "grad_rf_sprlio.h"
-#include "seriosmatx.h"
-  
+ 
 extern "C" {
 #include "fudgetargets.c"
 }
@@ -615,60 +612,28 @@ FILTER_INFO aps2_filt;
 int genspiralcdvd(float D, int N, float Tmax, float dts, float alpha, float kmaxfrac);
 int gram_duty(void);
 
+/* Declare functions from genviews */
+int genrotmat(char axis, float angle, float* R);
+int multmat(int M, int N, int P, float* mat1, float* mat2, float* mat3);
+int printmat(int M, int N, float* mat);
+int genviews(float T_0[9], float T_all[][9],
+		int N_slices, int N_leaves,
+		char rotorder[3], int doCAIPI,
+		float rotAnglex, float rotAngley, float rotAnglez);
+int conv(float* x, int lenx, float* h, int lenh, float* y);
+int recenter(float* x, int lenx, float xmin, float xmax);
+int diff(float* x, int lenx, float di, float* y);
+float getmaxabs(float *x, int lenx);
+float genspiral(float* gx, float* gy, float* gz, int Grad_len,
+		float R_accel, float THETA_accel,
+		int N_center, float ramp_frac, int isSOS,
+		float fov, int dim, float dt, float slthick,
+		int N_slices, int N_leaves,
+		float SLEWMAX, float GMAX);
+
 /*LHG 9.27.16 */
 int read_vsi_pulse(int *vsi_pulse_mag, int *vsi_pulse_phs, int *vsi_pulse_grad, int vsi_train_len);
 int calc_vsi_phs_from_velocity (int* vsi_pulse_mag, int* vsi_pulse_phs, int* vsi_pulse_grad,	float vel_target, int vsi_train_len, double vsi_Gmax);
-
-/*Spiral in-out for Spin Echo  functions from genspiral3d_io.e*/
-
-float genspiral(
-	float* gx,
-	float* gy,
-	float* gz,
-	int Grad_len,
-	float R_accel,
-	float THETA_accel,
-	int N_center,
-	float ramp_frac,
-	int doXrot,
-	int doYrot,
-	float fov,
-	int dim,
-	float dt,
-	float slthick,
-	int N_slices,
-	int N_leaves,
-	float SLEWMAX,
-	float GMAX);
-
-int sph2cart(
-        float* pfx,
-        float* pfy,
-        float* pfz,
-        float* pfr,
-        float* pftheta,
-        float* pfphi,
-        int     Npts);
-
-
-int rotGradWaves(
-        float*         gx,
-        float*         gy,
-        float*         gz,
-        float*         gx2,
-        float*         gy2,
-        float*         gz2,
-        int             glen,
-        float*         mat);
-
-int euler2mat2(float ang1,float ang2,float ang3,float *tm);
-
-/* DJF 4.25.22 seriosmatx.h function declarations: */
-int geneye(int size, float I[]);
-int genRyxz(float ax, float ay, float az);
-int multiplymatrix(int M, int N, int P, float mat1[], float mat2[], float matr[]);
-int printmatrix(int M, int N, float mat[]);
-int scalematrix(int M, int N, float mat[], float maxval);
 
 @inline Prescan.e PShostVars
 /* start changes for DV26 */
@@ -1131,7 +1096,9 @@ int cveval()
 	a_gzrf1r = (double)area_gzrf1r/(pw_gzrf1r + pw_gzrf1rd);
 
 	/* DJF 4.25.22 hardcoded calculation of rotAngle as GA, eventually make a opuser CV */
-	rotAngle = M_PI*(3-sqrt(5));
+	rotAnglex = M_PI * (3 - sqrt(5));
+	rotAngley = M_PI * (3 - sqrt(5));
+	rotAnglez = M_PI / nl;
 
 	/* values for Arterial suppression pulses LHG 10.15.19 */
 	if (doArtSup)
@@ -1337,7 +1304,6 @@ int predownload()
 {
 	int pdi, pdj;
 	int i, k;
-	int slicen, leafn, spiraln;
 	float max_rbw;
 	FILE * fpout;
 	FILE *fpin;
@@ -1345,54 +1311,11 @@ int predownload()
 	float	tmp;
 
 	/* DJF 4.25.22 Initialize important view rotation matrices: */ 
-	float rotmatx_0[9]; /* initial rotation matrix based on Rx */
-	float rotmatx_1[9]; /* rotation matrix calculated from view */
-	float rotmatx[9]; /* product of all rotations for current view */
-
-	/* DJF 4.25.22 convert savrot to column vector of float values from 0-1 */
-	for (k = 0; k<9; k++) rotmatx_0[k] = (float)savrot[0][k]*pow(2,-15);
-
-	/* DJF 4.25.22 Pre-computation of view parameter tables */
-	fprintf(stderr, "\nCalculating view parameters ...");
-	fprintf(stderr, "\ns: \tl: \tkzf: \txi: \tpsi: \tphi: \tR[9]:");
-	kviewfile = fopen("/usr/g/bin/kviews.txt","w");
-	for (leafn = 0; leafn<nl; leafn++) {
-		for (slicen = 0; slicen<opslquant; slicen++) {
-			/* calculate total view index */
-			spiraln = leafn*opslquant + slicen;
-
-			/* For SOS, calculate kzf */
-			if ((doXrot==1) || (doYrot==1)) /* if rotating about X or Y axis, not SOS */
-				kzf[spiraln] = 0;
-			else /* if not rotating about X or Y axis, SOS */
-				kzf[spiraln] = 2 / (float)opslquant * ( pow(-1,(float)slicen) * floor(((float)slicen+1)/2) + (float)doCAIPI * pow(-1,(float)leafn) * (float)leafn / (float)nl );
+	float T_0[9]; /* initial rotation matrix based on Rx */
+	for (k = 0; k<9; k++) T_0[k] = (float)savrot[0][k]*pow(2,-15);
 	
-			/* Calculate the rotation angles for current view */
-			xi[spiraln] = (float)doXrot * rotAngle * ( (float)slicen + ((float)doCAIPI * (float)leafn / (float)nl) );
-			psi[spiraln] = (float)doYrot * rotAngle * ( (float)slicen + ((float)doCAIPI * (float)leafn / (float)nl) );
-			phi[spiraln] = M_PI * (float)leafn / (float)nl;
-
-			/* print slice #, leaf #, kz fraction, and angles */
-			fprintf(kviewfile, "\n%d \t%d \t%f \t%f \t%f \t%f",slicen,leafn,kzf[spiraln],xi[spiraln],psi[spiraln],phi[spiraln]);
-			fprintf(stderr, "\n%d \t%d \t%f \t%f \t%f \t%f",slicen,leafn,kzf[spiraln],xi[spiraln],psi[spiraln],phi[spiraln]);
-
-			/* Generate a rotation matrix from angles (values from 0-1) */
-			genRyxz(xi[spiraln],psi[spiraln],phi[spiraln],rotmatx_1);
-
-			/* multiply current view RM with initial RM to get a total RM */
-			multiplymatrix(3,3,3,rotmatx_1,rotmatx_0,rotmatx);
-			
-			/* store matrix in the global matrix table and print: */
-			for (k=0; k<9; k++) {
-				rotmatrices[spiraln][k] = rotmatx[k];
-				fprintf(stderr, " \t%f", rotmatx[k]);
-				fprintf(kviewfile, " \t%f", rotmatx[k]);
-			}
-
-		}
-	}
-	fclose(kviewfile);
-	fprintf(stderr,"\nPredownload stuff:");
+	char rotorder[] = "yxz";
+	genviews(T_0,T_all,opslquant,nl,rotorder,doCAIPI,rotAnglex,rotAngley,rotAnglez);
 
 	/* Load the BIR-8 pulses for Arterial Suppression */
 	Npoints = read_vsi_pulse(ArtSup_mag, ArtSup_phs, ArtSup_grad, ArtSup_len);
@@ -1528,6 +1451,7 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 	float tol_slowDown = 1e-4;
 	float slowDown = 1.0;
 	int itr_slowDown = 0;
+	int isSOS = (rotAnglex > 0.0 || rotAngley > 0.0) ? (0) : (1);
 	do {
 		for (int n = 0; n < GRESMAX; n++) {
 			pfGx[n] = 0;
@@ -1546,8 +1470,7 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 				THETA_accel,
 				Ncenter,
 				ramp_frac,
-				doXrot,
-				doYrot,
+				isSOS,
 				gfov,
 				opxres,
 				4.0e-6,
@@ -1993,6 +1916,7 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 
 /* LHG 3.18.20:  spiral in-out in one shot */
 #include "genspiral.h"
+#include "genviews.h"
 
 @rsp
 
@@ -2049,7 +1973,9 @@ extern PSD_EXIT_ARG psdexitarg;
 #include "epic_loadcvs.h"
 #include "pgen_tmpl.h"
 #include "support_func.h"
-#include "seriosmatx.h"
+#include "genviews.h"
+
+int multmat(int M, int N, int P, float* mat1, float* mat2, float* mat3);
 
 long deadtime_tipdown_core;
 long deadtime_refocus_core;
@@ -2220,14 +2146,14 @@ STATUS pulsegen(void)
 	float Gvec[3];
 	float Gvec_rot[3];
 	float phsgain[1];
-	float rotmatx[9];
+	float T[9];
 	for (leafn = 0; leafn < nl; leafn++) {
 		for (slicen = 0; slicen < opslquant; slicen++) {
 			/* Determine total view index: */
 			spiraln = leafn*opslquant + slicen;
 
 			/* Get rotation matrix for current view */
-			for (k=0; k<9; k++) rotmatx[k] = rotmatrices[spiraln][k];
+			for (k=0; k<9; k++) T[k] = T_all[spiraln][k];
 			
 			/* Integrate phase gain due to gradient at each point */	
 			ts[0] = 0;
@@ -2238,10 +2164,10 @@ STATUS pulsegen(void)
 				Gvec[2] = (float) Gz[j];
 
 				/* multiply gradient vector by rotation matrix: */
-				multiplymatrix(3,3,1,rotmatx,Gvec,Gvec_rot);
+				multmat(3,3,1,T,Gvec,Gvec_rot);
 				
 				/* dot product with rd vector to get total phase gain */
-				multiplymatrix(1,3,1,Gvec_rot,rdvec,phsgain);
+				multmat(1,3,1,Gvec_rot,rdvec,phsgain);
 
 				/* Integrate phase gain */
 				if (kill_rx_phase) ts[j] = (short)(0.0) & ~WEOS_BIT;
@@ -3540,8 +3466,8 @@ int doleaf(FILE* pfRotMatFile, int leafn, int framen, int slicen, int* trig, int
 	int n, k, viewn;
 	int echon;
 	short rf2amp;
-	float rotmatx[9];
-	s32 rotmatxTS[1][9];
+	long int val;
+	s32 T[1][9];
 	/*int phase;*/
 	float  phase1, phase2; 
 	int myxmitfreq, myrecfreq;
@@ -3639,16 +3565,12 @@ int doleaf(FILE* pfRotMatFile, int leafn, int framen, int slicen, int* trig, int
 
 	loaddab(&echo1, slordtab[slicen], echon, dabop, viewn, (TYPDAB_PACKETS)dtype, dabmask);
 
-	/* DJF 4.27.22 set amplitude of kz gradient */
-	if (doXrot == 0 && doYrot == 0)
-		setiamp( (int) (max_pg_iamp * kzf[leafn*opslquant + slicen] * spiralGzmax / loggrd.zfs), &gz, 0);
-
 	/* DJF 4.25.22 get rotation matrix for current view, scale it, and set scanner */	
-	for (k=0; k<9; k++) rotmatx[k] = rotmatrices[leafn*opslquant + slicen][k];
-	for (k=0; k<9; k++) rotmatxTS[0][k] = (s32) IRINT(pow(2,15)*rotmatx[k]);
+	for (k=0; k<9; k++)
+		T[0][k] = (s32) IRINT((pow(2, 15) - 1.0) * T_all[leafn * opslquant + slicen][k]);
 
-	scalerotmats(rotmatxTS, &loggrd, &phygrd, 1, 0);
-	setrotate((s32 *)rotmatxTS[0],slicen);
+	scalerotmats(T, &loggrd, &phygrd, 1, 0);
+	setrotate((s32 *)T[0],slicen);
 
 	/*adjust receiver phase to account for fov offset */
 	setwave(thetrecintlp[leafn*opslquant+slicen], &thetrec, 0);

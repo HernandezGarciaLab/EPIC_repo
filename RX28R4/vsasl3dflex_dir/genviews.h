@@ -82,9 +82,6 @@ int genviews(float T_0[9], float T_all[][9],
 		}
 	}
 	fclose(f_kviews);
-	
-	fprintf(stderr, "Calculated platter transformation matrix table:\n");
-	printmat(N_slices * N_leaves, 9, T_all);
 
 	return 0;
 }
