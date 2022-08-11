@@ -609,21 +609,13 @@ static char supfailfmt[] = "Support routine %s exploded!";
 FILTER_INFO echo1_filt;
 FILTER_INFO aps2_filt;
 
-int genspiralcdvd(float D, int N, float Tmax, float dts, float alpha, float kmaxfrac);
 int gram_duty(void);
 
-/* Declare functions from genviews */
-int genrotmat(char axis, float angle, float* R);
-int multmat(int M, int N, int P, float* mat1, float* mat2, float* mat3);
-int printmat(int M, int N, float* mat);
+/* Declare functions genviews and genspirals */
 int genviews(float T_0[9], float T_all[][9],
 		int N_slices, int N_leaves,
 		char rotorder[3], int doCAIPI,
 		float rotAnglex, float rotAngley, float rotAnglez);
-int conv(float* x, int lenx, float* h, int lenh, float* y);
-int recenter(float* x, int lenx, float xmin, float xmax);
-int diff(float* x, int lenx, float di, float* y);
-float getmaxabs(float *x, int lenx);
 float genspiral(float* gx, float* gy, float* gz, int Grad_len,
 		float R_accel, float THETA_accel,
 		int N_center, float ramp_frac, int isSOS,
@@ -1307,7 +1299,6 @@ int predownload()
 	float max_rbw;
 	FILE * fpout;
 	FILE *fpin;
-	FILE *kviewfile;
 	float	tmp;
 
 	/* DJF 4.25.22 Initialize important view rotation matrices: */ 
@@ -1907,9 +1898,6 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 
 @inline Prescan.e PShost
 /*
-#include "genspiral5.e"
-#include "genspiralcdvd.e"
-*/
 
 /*LHG 9.17.16 */
 #include "read_vsi_pulse.e"
@@ -2605,7 +2593,7 @@ STATUS pulsegen(void)
 @rsp
 
 STATUS scancore(void);
-int doleaf(FILE* pfRotMatFile, int leafn, int framen, int slicen, int* trig, int* bangn, int dabop, int dtype); 
+int doleaf(int leafn, int framen, int slicen, int* trig, int* bangn, int dabop, int dtype); 
 
 void get_rfamp(int ntab, int* rfamp);
 
@@ -2666,9 +2654,6 @@ STATUS scancore()
 	double 	vsi_rfphase=0;
 	int	multphs_ctr=0;
 	long 	rotmatx90[1][9];
-	FILE* 	pfRotMatFile; /* this is a log file to save the rotation matrices for debugginh LHG 7/22/2020 */
-
-	pfRotMatFile = fopen("/usr/g/bin/krotations.txt","wb");
 
 	switch (doRotated90){
 		case 3:  /* rotation about the z axis of 90 degreees: z gradient */
@@ -2896,7 +2881,7 @@ STATUS scancore()
 			/*}
 			*/
 			for (isl = 0; isl < opslquant; isl++)
-				doleaf(pfRotMatFile,0,0, isl, &trig, &bangn, dabop, DABOFF);
+				doleaf(0,0, isl, &trig, &bangn, dabop, DABOFF);
 
 			getiamp(&chopamp, &rf1, 0);
 			setiamp(-chopamp, &rf1, 0);
@@ -2941,7 +2926,7 @@ STATUS scancore()
 			/* No need to skip around in rotation */
 			for (isl = 0; isl < opslquant; isl++){
 				dtype = (pre==1 || isl==0)? DABON:DABOFF;
-		 		doleaf(pfRotMatFile, 0, 0, isl,   &trig, &bangn, dabop, dtype);
+		 		doleaf(0, 0, isl,   &trig, &bangn, dabop, dtype);
 			}
 			getiamp(&chopamp, &rf1, 0);
 			setiamp(-chopamp, &rf1, 0);
@@ -3012,7 +2997,7 @@ STATUS scancore()
 
 		/* No need to skip around in rotation */
 		for (isl = 0; isl < opslquant; isl++)
-			doleaf(pfRotMatFile,0,0 , isl,   &trig, &bangn, dabop, DABOFF);
+			doleaf(0, 0, isl,   &trig, &bangn, dabop, DABOFF);
 
 		/* ---------------------------------------------------------*/
 		if(((int)opuser2) == 2) trig = TRIG_AUX;  	/* wait for trig */
@@ -3113,7 +3098,7 @@ STATUS scancore()
 
 			/* now do the spin echo train (180's) */
 			for (isl = 0; isl < opslquant; isl++)
-		 		doleaf(pfRotMatFile,iv, ifr, isl,   &trig, &bangn, dabop, DABON);
+		 		doleaf(iv, ifr, isl,   &trig, &bangn, dabop, DABON);
 
 			if(((int)opuser2) == 2) trig = TRIG_AUX;  	/* wait for trig */
 
@@ -3122,9 +3107,6 @@ STATUS scancore()
 		/*comm_buffer[1] = ifr;*/           /* talk to RT grecons */
 	}      /* end frames */
 
-
-	/*cleaning up:*/
-	fclose(pfRotMatFile);
 
 	/*LHG 6.15.22:  restore  R1 gain to its value   
 	setwamp(SSPDS+RDC,&dynr1,0);
@@ -3461,7 +3443,7 @@ void set_dynr1( int r1 )
  *
  */
 
-int doleaf(FILE* pfRotMatFile, int leafn, int framen, int slicen, int* trig, int* bangn, int dabop,  int dtype)
+int doleaf(int leafn, int framen, int slicen, int* trig, int* bangn, int dabop,  int dtype)
 {
 	int n, k, viewn;
 	int echon;
