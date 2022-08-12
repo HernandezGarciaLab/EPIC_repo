@@ -476,9 +476,6 @@ int	rf_sign = 1;
 float 	rf2_fraction = 0.7;
 int	variable_fa = 0;
 int	rf_phase_cycle = 0;
-int	doXrot = 1;
-int	doYrot = 1;  /* rotate around the KY axis after the X-axis*/
-
 
 /* LHG 12/14/12 : Variables for the backgroun Suppression pulses */
 int	BStime = 0;    /* total time needed for background suppresson block */
