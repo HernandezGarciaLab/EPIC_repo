@@ -14,9 +14,9 @@ int main(void)
 	float gy[GRESMAX];
 	float gz[GRESMAX];
 	float R_accel = 0.5;
-	float THETA_accel = 1;
+	float THETA_accel = 2;
 	int N_center = 50;
-	float ramp_frac = 0.75;
+	float ramp_frac = 1.5;
 	float angleXrot = M_PI * (3 - sqrt(5));
 	float angleYrot = M_PI * (3 - sqrt(5));
 	float SLEWMAX = 15000;

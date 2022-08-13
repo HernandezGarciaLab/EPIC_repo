@@ -10,15 +10,15 @@ float genspiral(float* gx, float* gy, float* gz, int Grad_len,
 		int N_slices, int N_leaves,
 		float SLEWMAX, float GMAX)
 {		
-	/* Distribute points */
 	/* Calculate Kspace information */
 	float gamma = 26754.0 / 2.0 / M_PI;
 	float dk = 1.0 / fov;
 	float Kxymax = (float)dim / fov / 2.0;
 	float Kzmax = (isSOS) ? (Kxymax) : (dim / (float)(slthick * N_slices) / 2.0);
 	float N_turns = Kxymax / dk / 2.0 * THETA_accel / (float)N_leaves + 1;
-	
-	int N_ramp = round((float)(Grad_len - N_center) / (float)N_turns * ramp_frac);
+
+	/* Distribute points (N_ramp derived from calculating max slew from kernel and solving for N_ramp) */	
+	int N_ramp = ceil(ramp_frac * 2.0 * M_PI / dt * sqrt(2.0 * Kxymax / SLEWMAX / gamma));
 	if (N_ramp % 2 > 0) { /* if N_ramp is not even, donate a point to the center */
 		N_ramp--;
 		N_center++;
