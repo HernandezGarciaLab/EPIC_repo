@@ -1434,7 +1434,7 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 		oprbw, gfov, Kmax, deltaK, FID_len, FID_dur, Grad_len );
 
 	float myGmax = spiralGmax;
-	Grad_len = round(FID_dur/4.0);
+	Grad_len = 10000;
 
 	float tol_slowDown = 1e-4;
 	float slowDown = 1.0;

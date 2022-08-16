@@ -28,7 +28,12 @@ float genspiral(float* gx, float* gy, float* gz, int Grad_len,
 		N_points--;
 		N_center++;
 	}
-	
+
+	if (N_ramp > N_points / 2) {
+		fprintf(stderr, "genspiral(): N_ramp = %d > N_points/2 = %d\n\t--> ERROR, returning slowFactor of 1", N_ramp, N_points / 2);
+		return 1;
+	}
+
 	/* Initialize loop variables */
 	int n;
 	float dn;
