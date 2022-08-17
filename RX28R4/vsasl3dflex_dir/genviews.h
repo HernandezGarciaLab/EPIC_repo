@@ -5,8 +5,22 @@ int printmat(int M, int N, float* mat);
 int genviews(float T_0[9], float T_all[][9],
 		int N_slices, int N_leaves,
 		char rotorder[3], int doCAIPI,
-		float rotAnglex, float rotAngley, float rotAnglez)
+		float rotAnglex, float rotAngley, float rotAnglez,
+		int readAngsFromFile)
 {
+	
+	float filerotAngles[N_slices*N_leaves][3];
+	if (readAngsFromFile) {
+		FILE* f_angles = fopen("./SERIOSrotangles.txt","r");
+		int i = 0;
+		float ax, ay, az;
+		while (fscanf(f_angles,"%f %f %f\t", &ax, &ay, &az) != EOF) {
+			filerotAngles[i][1] = ax;
+			filerotAngles[i][2] = ay;
+			filerotAngles[i++][3] = az;
+		}
+		fclose(f_angles);
+	}
 
 	/* Determine if trajectory is SOS */
 	int isSOS = (rotAnglex > 0.0 || rotAngley > 0.0) ? (0) : (1);
@@ -39,6 +53,12 @@ int genviews(float T_0[9], float T_all[][9],
 					kzf += 2.0 / (float)N_slices * pow(-1, (float)leafn) * (float)leafn / (float)N_leaves;
 				xi += rotAnglex * (float)leafn / (float)N_leaves;
 				psi += rotAngley * (float)leafn / (float)N_leaves;
+			}
+
+			if (readAngsFromFile) {
+				xi = filerotAngles[leafn * N_slices + slicen][1];
+				psi = filerotAngles[leafn * N_slices + slicen][2];
+				phi = filerotAngles[leafn * N_slices + slicen][3];
 			}
 
 			/* Generate translation matrix for kz stepping and multiply it to translation matrix */
