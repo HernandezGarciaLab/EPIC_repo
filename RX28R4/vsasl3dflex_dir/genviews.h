@@ -9,7 +9,7 @@ int genviews(float T_0[9], float T_all[][9],
 		int readAngsFromFile)
 {
 	
-	float filerotAngles[N_slices*N_leaves][3];
+	float filerotAngles[1000][3];
 	if (readAngsFromFile) {
 		FILE* f_angles = fopen("./SERIOSrotangles.txt","r");
 		int i = 0;
