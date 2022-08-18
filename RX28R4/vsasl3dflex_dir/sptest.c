@@ -28,6 +28,7 @@ int main(void)
 	float slthick = 0.8; /* cm */
 	int N_slices = 17;
 	int N_leaves = 1;
+	int readAngsFromFile = 0;
 
 	int isSOS = (angleXrot > 0.0 || angleYrot > 0.0) ? (0) : (1);
 	float angleZrot = M_PI / N_leaves;
@@ -60,7 +61,7 @@ int main(void)
 		0,1,0,
 		0,0,1};
 	char rotorder[3] = "yxz";
-	genviews(T_0,T_all,N_slices,N_leaves,rotorder,1,angleXrot,angleYrot,angleZrot);
+	genviews(T_0,T_all,N_slices,N_leaves,rotorder,1,angleXrot,angleYrot,angleZrot,readAngsFromFile);
 
 	return 0;
 };
