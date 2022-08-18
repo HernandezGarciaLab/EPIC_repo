@@ -8,16 +8,18 @@ int genviews(float T_0[9], float T_all[][9],
 		float rotAnglex, float rotAngley, float rotAnglez,
 		int readAngsFromFile)
 {
-	
-	float filerotAngles[1000][3];
+
+	/* Get matrix of rotation angles from file */	
+	float filerotAngles[1000][4];
 	if (readAngsFromFile) {
 		FILE* f_angles = fopen("./SERIOSrotangles.txt","r");
 		int i = 0;
-		float ax, ay, az;
-		while (fscanf(f_angles,"%f %f %f\t", &ax, &ay, &az) != EOF) {
+		float ax, ay, az, sz;
+		while (fscanf(f_angles,"%f %f %f %f\t", &ax, &ay, &az, &sz) != EOF) {
 			filerotAngles[i][1] = ax;
 			filerotAngles[i][2] = ay;
-			filerotAngles[i++][3] = az;
+			filerotAngles[i][3] = az;
+			filerotAngles[i++][4] = sz;
 		}
 		fclose(f_angles);
 	}
@@ -59,6 +61,7 @@ int genviews(float T_0[9], float T_all[][9],
 				xi = filerotAngles[leafn * N_slices + slicen][1];
 				psi = filerotAngles[leafn * N_slices + slicen][2];
 				phi = filerotAngles[leafn * N_slices + slicen][3];
+				kzf = filtrotAngles[leafn * N_slices + slicen][4];
 			}
 
 			/* Generate translation matrix for kz stepping and multiply it to translation matrix */
