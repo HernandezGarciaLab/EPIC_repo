@@ -449,6 +449,7 @@ float 	rotAnglex; /* Angle of rotation about x-axis for SERIOS */
 float	rotAngley; /* Angle of rotation about y-axis for SERIOS */
 float	rotAnglez; /* Angle of rotation about z-axis for SERIOS and SOS */
 float 	SLEWMAX = 16000;
+int	readAngsFromFile;
 
 float	se_slab_fraction = 1.5 with {0,10, , VIS, "fraction of the nominal z FOV excited by 180 degree pulse"};
 
@@ -612,7 +613,8 @@ int gram_duty(void);
 int genviews(float T_0[9], float T_all[][9],
 		int N_slices, int N_leaves,
 		char rotorder[3], int doCAIPI,
-		float rotAnglex, float rotAngley, float rotAnglez);
+		float rotAnglex, float rotAngley, float rotAnglez,
+		int readAngsFromFile);
 float genspiral(float* gx, float* gy, float* gz, int Grad_len,
 		float R_accel, float THETA_accel,
 		int N_center, float ramp_frac, int isSOS,
@@ -1088,6 +1090,7 @@ int cveval()
 	rotAnglex = M_PI * (3 - sqrt(5));
 	rotAngley = M_PI * (3 - sqrt(5));
 	rotAnglez = M_PI / nl;
+	readAngsFromFile = 0;
 
 	/* values for Arterial suppression pulses LHG 10.15.19 */
 	if (doArtSup)
@@ -1303,7 +1306,7 @@ int predownload()
 	for (k = 0; k<9; k++) T_0[k] = (float)savrot[0][k]*pow(2,-15);
 	
 	char rotorder[] = "yxz";
-	genviews(T_0,T_all,opslquant,nl,rotorder,doCAIPI,rotAnglex,rotAngley,rotAnglez);
+	genviews(T_0,T_all,opslquant,nl,rotorder,doCAIPI,rotAnglex,rotAngley,rotAnglez,readAngsFromFile);
 
 	/* Load the BIR-8 pulses for Arterial Suppression */
 	Npoints = read_vsi_pulse(ArtSup_mag, ArtSup_phs, ArtSup_grad, ArtSup_len);
