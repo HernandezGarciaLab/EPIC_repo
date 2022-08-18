@@ -14,7 +14,7 @@ float genspiral(float* gx, float* gy, float* gz, int Grad_len,
 	float gamma = 26754.0 / 2.0 / M_PI;
 	float dk = 1.0 / fov;
 	float Kxymax = (float)dim / fov / 2.0;
-	float Kzmax = (isSOS) ? (dim / (float)(slthick * N_slices) / 2.0) : (Kxymax);
+	float Kzmax = (isSOS) ? ((float)(N_slices * N_leaves) / (float)(slthick * N_slices) / 2.0) : (Kxymax);
 	float N_turns = Kxymax / dk / 2.0 * THETA_accel / (float)N_leaves + 1;
 
 	/* Distribute points (N_ramp derived from calculating max slew from kernel and solving for N_ramp) */	
