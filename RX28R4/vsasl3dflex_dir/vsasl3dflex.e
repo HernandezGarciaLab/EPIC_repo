@@ -3051,7 +3051,7 @@ STATUS scancore()
 				ia_vsictl1 = a_vsictl1 * max_pg_iamp;
 			}
 		}
-		/* LHG 11.4.19 : This is where we update the variables from the array in real time*/
+		/* LHG 11.4.19 : This is where we update the variables from the array in real time
 		if (mrf_mode ) {
 			doArtSup = (int)(doArtSuppression_array[ifr]);
 			isLabel  = (int)(isVelocitySelective_array[ifr]);
@@ -3059,8 +3059,17 @@ STATUS scancore()
 			t_adjust = (int)(1e6*t_adjust_array[ifr]);
 			AStime   = (int)(1e6*AStime_array[ifr]);
 		}
-
+		*/
 		for (iv = 0; iv < nl; iv++)  {
+			/* LHG 22.08.19 : This is where we update the variables from the array in real time*/
+			if (mrf_mode ) {
+				doArtSup = (int)(doArtSuppression_array[ifr]);
+				isLabel  = (int)(isVelocitySelective_array[ifr]);
+				t_delay  = (int)(1e6*t_delay_array[ifr]);
+				t_adjust = (int)(1e6*t_adjust_array[ifr]);
+				AStime   = (int)(1e6*AStime_array[ifr]);
+			}
+
 
 			if(maketrig==1 )
 				setwamp(trigonwd, &trigon, 2);
