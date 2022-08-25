@@ -1577,7 +1577,7 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 	pw_rf0 = pwrf0;
 	a_rf0 = arf0;
 	/*LHG 11/155555/2018 */
-	a_rf0 = 0.14;
+	/* a_rf0 = 0.14; */
 
 
 
