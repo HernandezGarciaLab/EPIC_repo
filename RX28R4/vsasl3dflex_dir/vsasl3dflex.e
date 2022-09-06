@@ -448,7 +448,7 @@ float	ramp_frac = 1.5;
 float 	rotAnglex; /* Angle of rotation about x-axis for SERIOS */
 float	rotAngley; /* Angle of rotation about y-axis for SERIOS */
 float	rotAnglez; /* Angle of rotation about z-axis for SERIOS and SOS */
-float 	SLEWMAX = 16000;
+float 	SLEWMAX = 19000;
 int	readAngsFromFile;
 
 float	se_slab_fraction = 1.5 with {0,10, , VIS, "fraction of the nominal z FOV excited by 180 degree pulse"};
