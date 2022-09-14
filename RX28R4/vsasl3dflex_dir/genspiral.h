@@ -13,12 +13,11 @@ float genspiral(float* gx, float* gy, float* gz, int Grad_len,
 	/* Calculate Kspace information */
 	float gamma = 26754.0 / 2.0 / M_PI;
 	float dk = 1.0 / fov;
-	float Kxymax = (float)dim / fov / 2.0;
-	float Kzmax = (isSOS) ? ((float)(N_slices * N_leaves) / (float)(slthick * N_slices) / 2.0) : (Kxymax);
-	float N_turns = Kxymax / dk * THETA_accel / (float)N_leaves + 1;
+	float kmax = (float)dim / fov / 2.0;
+	float N_turns = kmax / dk * THETA_accel / (float)N_leaves + 1;
 
 	/* Distribute points (N_ramp derived from calculating max slew from kernel and solving for N_ramp) */	
-	int N_ramp = ceil(ramp_frac * 2.0 * M_PI / dt * sqrt(2.0 * Kxymax / SLEWMAX / gamma));
+	int N_ramp = ceil(ramp_frac * 2.0 * M_PI / dt * sqrt(2.0 * kmax / SLEWMAX / gamma));
 	if (N_ramp % 2 > 0) { /* if N_ramp is not even, donate a point to the center */
 		N_ramp--;
 		N_center++;
@@ -59,7 +58,7 @@ float genspiral(float* gx, float* gy, float* gz, int Grad_len,
 	/* Convolve r with kernel to produced smoothed radius function */
 	float r[Grad_len];
 	conv(r_spiky, Grad_len - N_ramp, kern, N_ramp, r);
-	recenter(r, Grad_len, 0.0, Kxymax);
+	recenter(r, Grad_len, 0.0, kmax);
 	
 	/* Define piece-wise angle function for traj polar coordinates */
 	float theta[Grad_len];
@@ -84,7 +83,7 @@ float genspiral(float* gx, float* gy, float* gz, int Grad_len,
 		kz_spiky[Grad_len - N_ramp - 1] = 0.0;
 		for (n = 1; n < Grad_len - N_ramp - 1; n++) kz_spiky[n] = 1.0;
 		conv(kz_spiky, Grad_len - N_ramp, kern, N_ramp, kz);
-		recenter(kz, Grad_len, 0.0, Kzmax);
+		recenter(kz, Grad_len, 0.0, kmax);
 	}
 
 	/* Calculate gradient waveforms by differentiating trajectory */
