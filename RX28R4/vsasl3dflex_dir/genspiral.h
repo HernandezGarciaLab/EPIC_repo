@@ -15,8 +15,6 @@ float genspiral(float* gx, float* gy, float* gz, int Grad_len,
 	float dk = 1.0 / fov;
 	float Kxymax = (float)dim * dk / 2.0;
 	float Kzmax = (float)N_slices * dk / 2.0;
-	if (doCAIPI)
-		Kzmax *= (float)N_leaves;
 	float N_turns = Kxymax / dk * THETA_accel / (float)N_leaves + 1;
 
 	/* Distribute points (N_ramp derived from calculating max slew from kernel and solving for N_ramp) */	
