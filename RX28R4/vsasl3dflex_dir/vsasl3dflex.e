@@ -619,7 +619,7 @@ float genspiral(float* gx, float* gy, float* gz, int Grad_len,
 		float R_accel, float THETA_accel,
 		int N_center, float ramp_frac, int isSOS,
 		float fov, int dim, float dt, float slthick,
-		int N_slices, int N_leaves,
+		int N_slices, int N_leaves, int doCAIPI,
 		float SLEWMAX, float GMAX);
 
 /*LHG 9.27.16 */
@@ -1468,6 +1468,7 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 				opslthick/10.0,
 				opslquant,
 				nl,
+				doCAIPI,
 				SLEWMAX,
 				myGmax);
 	} while (pow(slowDown - 1.0, 2) > tol_slowDown && itr_slowDown <= 50);

@@ -29,7 +29,7 @@ int main(void)
 	int N_slices = 17;
 	int N_leaves = 1;
 	int readAngsFromFile = 0;
-    int doCAIPI = 1;
+	int doCAIPI = 1;
 
 	int isSOS = (angleXrot > 0.0 || angleYrot > 0.0) ? (0) : (1);
 	float angleZrot = M_PI / N_leaves;
@@ -50,7 +50,7 @@ int main(void)
 				R_accel, THETA_accel,
 				N_center, ramp_frac, isSOS,
 				fov, dim, dt, slthick,
-				N_slices, N_leaves,
+				N_slices, N_leaves, doCAIPI,
 				SLEWMAX, GMAX);
 	} while (pow(slowDown - 1.0, 2) > tol_slowDown && itr_slowDown <= 50);
 
