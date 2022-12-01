@@ -518,7 +518,8 @@ float 	flip_vsitag1 = 180;
 int 	wg_vsitag1 =  TYPRHO1 with {0, WF_MAX_PROCESSORS*2-1,
                                            TYPRHO1, VIS, , };
 
-/*LHG 6.14.22: extra gain during background suppressed ASL images*/
+/* LHG 6.14.22: extra gain during background suppressed ASL images*/
+/* LHG 12.01.22:  this is set to zero in mrf_mode */
 int	rgainasl = 4;
 
 float	xmtaddScan;
@@ -1191,7 +1192,10 @@ int cveval()
 
 
 	/*---------------------------*/
-	if (mrf_mode) doBS = 0;
+	if (mrf_mode){
+		doBS = 0;
+		rgainasl = 0; /* LHG 12.01.22 */
+		}
 
 	if (doBS==0){
 		BS1_time = 10000;
