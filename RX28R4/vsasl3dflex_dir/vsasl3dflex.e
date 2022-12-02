@@ -3392,9 +3392,12 @@ void doadjust(  int* trig)
 	/* LHG 1.11.22 */
 	if (ifr>=M0frames && doBS==1)
 	{
-		setperiod(RUP_GRD(t_adjust-timessi - t_adjust_fudge-t_preBS) , &tadjustcore, 0);
-		boffset(off_preBScore);
-		startseq(0, MAY_PAUSE);
+
+		/* turn ON  BS pulses after M0 frames*/
+		setiamp(a_gzBS0rfspoiler * max_pg_iamp/loggrd.zfs , &gzBS0rfspoiler, 0);
+		setiamp(a_BS0rf * max_pg_iamp, &BS0rf, 0);
+		setiamp(a_BS1rf * max_pg_iamp, &BS1rf, 0);
+		setiamp(a_BS2rf * max_pg_iamp, &BS2rf, 0);
 
 		/* code from PCASL sequence to adjust the R1 gain dynamically :  /
 		setwamp(SSPDS+RDC,&dynr1,0);
@@ -3409,6 +3412,8 @@ void doadjust(  int* trig)
 			//setwamp(SSPDS,&dynr1,0);
 			attenlockoff(&attenuator_key);
 		/*************/
+
+		/* adjust the R1 gains after the M0 frames */
 		fprintf(stderr,"\nReturned pscR1: %d, rgainasl: %d", pscR1, rgainasl);
 		if ((int)(rgainasl + pscR1) <= 11)
 		{
@@ -3421,6 +3426,18 @@ void doadjust(  int* trig)
 			set_dynr1(11);
 		}
 	}
+	else
+	{
+		/* turn off BS pulses during M0 frames*/
+		setiamp(0 , &BS0rf, 0);
+		setiamp(0, &gzBS0rfspoiler, 0);
+		setiamp(0 , &BS1rf, 0);
+		setiamp(0 , &BS2rf, 0);
+	}
+
+	setperiod(RUP_GRD(t_adjust-timessi - t_adjust_fudge-t_preBS) , &tadjustcore, 0);
+	boffset(off_preBScore);
+	startseq(0, MAY_PAUSE);
 
 
 	boffset(off_tadjustcore);
