@@ -256,6 +256,8 @@ int psdseqtime;     /* sequence repetition time */
 int t_tipdown_core;	/*time it takes to play out the 90 core */
 int t_refocus_core;	/*time it takes to play out the 180 core: spoilers and 180 */
 int t_seqcore; 	/* time it takes to play the readout only  */
+int crushwait1 = 400; /* delay between slice select and crushers - let eddy currents die down just in case */
+int crushwait2 = 400; /* delay between slice select and crushers - let eddy currents die down just in case */
 
 /* int timessi=400us with {0,,400us,INVIS,"time from eos to ssi in intern trig",};*/
 int timessi=120us with {0,,400us,INVIS,"time from eos to ssi in intern trig",};
@@ -441,8 +443,8 @@ double	deltaK;
 int	FID_len;
 int	Grad_len;
 int	FID_dur;
-float 	R_accel= 0.5;
-float 	THETA_accel = 1.0;
+float 	R_accel= 0.7;
+float 	THETA_accel = 0.7;
 int	Ncenter = 20;
 float	ramp_frac = 1.5;
 float 	rotAnglex; /* Angle of rotation about x-axis for SERIOS */
@@ -474,7 +476,7 @@ float 	yfov = 10.0;	/* LHG 12.22.18: this sequence allows rotation of the 90 deg
 float	delta_y = 0.0 with {-100, 100, , VIS, "if the 90 rf is rotated to the Y axis, use this to shift it along the Y axs "};
 int	doCAIPI = 1;
 int	rf_sign = 1;
-float 	rf2_fraction = 0.7;
+float 	rf2_fraction = 1.0;
 int	variable_fa = 0;
 int	rf_phase_cycle = 0;
 
@@ -682,6 +684,7 @@ int cvinit()
 
 int cveval()
 {
+	fprintf(stderr, "\n\nBegin CVEVAL()\n\n");
 	int tmptr, entry;
 
 	configSystem();
@@ -787,7 +790,7 @@ int cveval()
 
 	cvdesc(opuser1, "number of temporal frames");
 	cvdef(opuser1, 1);
-	opuser1 = 4;
+	opuser1 = 2;
 	cvmin(opuser1, 1);
 	cvmax(opuser1, 16384);
 	nframes = opuser1;
@@ -801,7 +804,7 @@ int cveval()
 
 	cvdesc(opuser3, "Recon script_number or none(0)");
 	cvdef(opuser3, 0);
-	opuser3 = 0;
+	opuser3 = 722;
 	cvmin(opuser3, 0);
 	cvmax(opuser3, 999);
 
@@ -822,7 +825,7 @@ int cveval()
 	/* opuer6 used to be gtype */
 	cvdesc(opuser6, "Maximum spiral gradient amp (G/cm)");
 	cvdef(opuser6, 2.1);
-	opuser6 = 2.1;
+	opuser6 = 4.0;
 	cvmin(opuser6, 0);
 	cvmax(opuser6, 4);
 	spiralGmax = opuser6;
@@ -866,14 +869,14 @@ int cveval()
 
 	cvdesc(opuser13, "K-space radial speed factor (1 = linear)");
 	cvdef(opuser13, 0.5);
-	opuser13 =0.5;
+	opuser13 =0.7;
 	cvmin(opuser13, 0);
 	cvmax(opuser13, 3.0);
 	R_accel = opuser13;
 
 	cvdesc(opuser14, "K-space rotation speed factor (2=twice the number of turns)");
 	cvdef(opuser14, 1.0);
-	opuser14 = 1.0;
+	opuser14 = 0.7;
 	cvmin(opuser14,0.5);
 	cvmax(opuser14, 5.0);
 	THETA_accel = opuser14;
@@ -1070,6 +1073,7 @@ int cveval()
 	
 	/*---LHG: 09.01.2021 ---*/
 	/*SLICESELZ doesn't seem to set these right.  Let's do it manually */
+	/* LHG 12.13.22 :  Maybe all of this below should be in predownload() instead of here */
 	pw_gzrf1 = pwrf1;
 	pw_gzrf2 = pwrf2;
 	pw_gzrf1a = myramptime;
@@ -1155,6 +1159,8 @@ int cveval()
 	res_BS2rf = res_BS1rf;
 
 	 /* JS 03/14/2018: Parameters for BS0 pulses*/
+	/* BS0rf is the first half of an adiabatic pulsei (sech).  
+	We stop halfway through the sweep, when spins are at 90 degree tip*/
         pw_BS0rf = pw_BS1rf/2;
         a_BS0rf = a_BS1rf;
         res_BS0rf = res_BS1rf/2;
@@ -1212,31 +1218,33 @@ int cveval()
 
 	astseqtime2 = t_tag + t_delay;  /*duration of tagging + postabeling delay */
 
-	/* calculate duration of each core in the readout */
-	t_tipdown_core = RUP_GRD(opte/2 - pw_gz180crush1 - 2*pw_gz180crush1a + timessi);
+	/*
+	// calculate duration of each core in the readout 
+	t_tipdown_core = RUP_GRD(opte/2 - pw_gz180crush1 - 2*pw_gz180crush1a - crushwait1 );
 
 	t_refocus_core = RUP_GRD(
-		tlead +
 		pw_gz180crush1 + 2*pw_gz180crush1a +
 		pw_gz180crush2 + 2*pw_gz180crush2a +
 		pw_gzrf2 + 2*pw_gzrf2a
-		+ timessi);
+		+ crushwait1 + crushwait2
+		);
 
 	t_seqcore = RUP_GRD(
-		opte - 2*( pw_gz180crush2 + 2*pw_gz180crush2a) - (pw_gzrf2 + 2*pw_gzrf2a ) + timessi );
+		opte - 2*( pw_gz180crush2 + 2*pw_gz180crush2a) - (pw_gzrf2 + 2*pw_gzrf2a )-crushwait1-crushwait2 );
 
-	/* duration of the whole readout  */
+	/// duration of the whole readout  
 	seqtr = t_tipdown_core + (t_refocus_core + t_seqcore) * opslquant;
 
-	/* duration of the whole sequence */
+	//duration of the whole sequence 
 	psdseqtime = seqtr + t_tag + t_delay + AStime + textra_astcore + textra_delaycore;
 
-	/* Left over time to fille the TR */
-	t_adjust = RUP_GRD(optr - psdseqtime);                 /* LHG 7.18.18 */
+	// Left over time to fille the TR 
+	t_adjust = RUP_GRD(optr - psdseqtime);                 // LHG 7.18.18 
 
 	readpos = RUP_GRD(opte/2.0 
 			- pw_gzrf2/2.0 - pw_gzrf2a
 			- pw_gz180crush2 - 2*pw_gz180crush2a 
+			- crushwait2
 			- FID_dur/2);
 
 
@@ -1244,6 +1252,7 @@ int cveval()
 			readpos,  t_tipdown_core , t_refocus_core, t_seqcore);
 	fprintf(stderr, "\npsdseqtime, seqtr, tmin, optr=  %d   %d  %d  %d", psdseqtime,  seqtr,tmin,optr);
 	fprintf(stderr, "\nt_adjust = %d , astseqtime= %d \n", t_adjust, astseqtime);
+	*/
 	/*---------------------------*/
 
 	/* init RF pulses' amplitudes  */
@@ -1298,6 +1307,7 @@ int cvcheck()
 
 int predownload()
 {
+	fprintf(stderr, "\n\n Begin PREDOWNLOAD() \n\n");
 	int pdi, pdj;
 	int i, k;
 	float max_rbw;
@@ -1542,6 +1552,69 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 	fprintf(stderr, "\n...spirals ready ...");
 
 #include "predownload.in"
+
+	/***************************************************************************************/
+	/*LHG 12/13/22 - SLICESELZ doesn't seem to set these right.  Let's set them manually AGAIN*/
+	/***************************************************************************************/
+	pw_gzrf1 = pwrf1;
+	pw_gzrf2 = pwrf2;
+	pw_gzrf1a = myramptime;
+	pw_gzrf1d = myramptime;
+	pw_gzrf2a = myramptime;
+	pw_gzrf2d = myramptime;
+
+	pw_rf1 = pwrf1;
+	pw_rf2 = pwrf2;
+
+	fatsattime = pw_rf0 + 2*pw_gz0d +pw_gz0 + 2*timessi;
+	fuzz = 10000;
+
+	astseqtime2 = t_tag + t_delay;  /*duration of tagging + postabeling delay */
+
+	/* calculate duration of each core in the readout */
+	t_tipdown_core = RUP_GRD(opte/2 
+		- pw_gz180crush1 - 2*pw_gz180crush1a 
+		- crushwait1 
+		-pwrf2/2 - myramptime
+		+ pw_gzrf1/2 + pw_gzrf1a );
+
+	t_refocus_core = RUP_GRD(
+		tlead +
+		pw_gz180crush1 + 2*pw_gz180crush1a +
+		pw_gz180crush2 + 2*pw_gz180crush2a +
+		pw_gzrf2 + 2*pw_gzrf2a
+		+ crushwait1 + crushwait2
+		);
+
+	t_seqcore = RUP_GRD(opte - t_refocus_core);
+		//RUP_GRD(opte - 2*( pw_gz180crush2 + 2*pw_gz180crush2a) - (pw_gzrf2 + 2*pw_gzrf2a )-crushwait1-crushwait2 );
+
+	/* duration of the whole readout  */
+	seqtr = t_tipdown_core + (t_refocus_core + t_seqcore) * opslquant;
+
+	/* duration of the whole sequence */
+	psdseqtime = seqtr + t_tag + t_delay + AStime + textra_astcore + textra_delaycore;
+
+	/* Left over time to fille the TR */
+	t_adjust = RUP_GRD(optr - psdseqtime);                 /* LHG 7.18.18 */
+
+	
+	readpos = RUP_GRD(opte/2.0 
+			- pw_gzrf2/2.0 - pw_gzrf2a
+			- pw_gz180crush2 - 2*pw_gz180crush2a 
+			- crushwait2
+			- FID_dur/2
+			- tlead);
+
+	//readpos = t_seqcore/2 - FID_dur/2;
+
+	fprintf(stderr, "\n\nRe-Adjusting core timings in PREDOWNLOAD() section \n\n"); 
+	fprintf(stderr, "\nreadpos,  t_tipdown_core , t_refocus_core, t_seqcore=  %d   %d  %d  %d", 
+			readpos,  t_tipdown_core , t_refocus_core, t_seqcore);
+	fprintf(stderr, "\npsdseqtime, seqtr, tmin, optr=  %d   %d  %d  %d", psdseqtime,  seqtr,tmin,optr);
+	fprintf(stderr, "\nt_adjust = %d , astseqtime= %d \n", t_adjust, astseqtime);
+
+	/*------------------------------------------------------------------------*/
 
 	/* set up RF pulse  */
 	myflip_rf2 = 180;
@@ -2010,38 +2083,34 @@ STATUS pulsegen(void)
 	debugstate = debug;
 
 	sspinit(psd_board_type);
-	fprintf(stderr, "my_maxB1Seq=%.4f \n", my_maxB1Seq);
+	fprintf(stderr, "\nwelcome to pulsegen()");
+	fprintf(stderr, "\nmy_maxB1Seq=%.4f \n", my_maxB1Seq);
+	fprintf(stderr, "\nmyramptime=%d \n", myramptime);
 
 	/* first core is the tip down pulse (90) */
 	fprintf(stderr, "\npulsegen: generating RF1 pulse (90) ... ");
-	fprintf(stderr, "RUP_GRD(tlead + pw_gzrf1a + psd_rf_wait) = ");
-	fprintf(stderr, "RUP_GRD(%f + %f + %f) = ", tlead, pw_gzrf1a, psd_rf_wait);
-	fprintf(stderr, "%f\n", RUP_GRD(tlead + pw_gzrf1a + psd_rf_wait));
 	SLICESELZ(rf1,
-			RUP_GRD(tlead + pw_gzrf1a + psd_rf_wait),
+			RUP_GRD(myramptime),  /*a short placeholder to initial value*/
 			pwrf1,
 			yfov * 10 * slab_fraction,  /* this is for FOV reduction (mm) */
 			opflip,
 			cycrf1,,
 			loggrd);
 
+	fprintf(stderr, "\nRUP_GRD(tlead + pw_gzrf1a ) = ");
+	fprintf(stderr, "\nRUP_GRD(%d + %d ) = ", tlead, pw_gzrf1a);
+	fprintf(stderr, "%f\n", RUP_GRD(tlead + pw_gzrf1a ));
 	fprintf(stderr,"\n pw_gzrf1  = %d",  pw_gzrf1);
 	fprintf(stderr,"\n pw_rf1  = %d",  pw_rf1);
-	fprintf(stderr,"\n start of gzrf1  = %d",  RUP_GRD(pbegall(&gzrf1,0)));
-	fprintf(stderr,"\n start of gzrf1  = %d",  RUP_GRD(pbegall(&gzrf1,0)));
-	fprintf(stderr,"\n end of gzrf1 =%d ",  RUP_GRD(pendall(&gzrf1,0)));
 
 	fprintf(stderr, "\npulsegen: generating refocuser for the 90 RF   ... ");
 	/*refocuser for slice select pulse*/
 	TRAPEZOID(ZGRAD,
 			gzrf1r,
-			/*pendall(&gzrf1, 0) + pw_gzrf1ra,*/
-			RUP_GRD(tlead + psd_rf_wait + 2*pw_gzrf1a + pw_gzrf1 + pw_gzrf1ra ),
+			RUP_GRD(tlead + 2*pw_gzrf1a + pw_gzrf1 + pw_gzrf1ra ),
 			0,
 			0,loggrd);
 
-	fprintf(stderr,"\n start of gz refocuser =%d ",  RUP_GRD(pbegall(&gzrf1r,0)));
-	fprintf(stderr,"\n end of gz refocuser = %d",  RUP_GRD(pendall(&gzrf1r,0)));
 	fprintf(stderr,"\n t_tipdown_core =%d ", t_tipdown_core);
 
 	SEQLENGTH(tipdown_core, t_tipdown_core -timessi , tipdown_core);
@@ -2053,33 +2122,36 @@ STATUS pulsegen(void)
 
 	/* first half of crusher pair */
 	fprintf(stderr, "\npulsegen: generating first half of crusher pair   ... ");
+	fprintf(stderr, "start at  %d",	RUP_GRD(myramptime));
 	TRAPEZOID(ZGRAD,
 			gz180crush1,
-			RUP_GRD(pw_gz180crush1a ),
+			RUP_GRD(myramptime),
 			0,
 			0,loggrd);
 
 
-	fprintf(stderr,"\n start of gz180crush1  = %d",  RUP_GRD(pbegall(&gz180crush1,0)));
-	fprintf(stderr,"\n end of gz180crush1 =%d ",  RUP_GRD(pendall(&gz180crush1,0)));
 	fprintf(stderr,"\n pulsegen: generating RF2 pulse for FSE train   ... ");
+	fprintf(stderr, "start at : %d", pw_gz180crush1 + 3*myramptime + crushwait1);
 	SLICESELZ(rf2,
-			pend(&gz180crush1d, "gz180crush1d",0) + pw_gzrf2a + tlead + psd_rf_wait,
+			pw_gz180crush1 + 3*myramptime + crushwait1 ,
 			pwrf2, /* use the same pulse as the 90, but double it */
 			zfov * 10 * se_slab_fraction,  /* (mm) */
 			myflip_rf2, /*flip angle should be a 180*/
 			cycrf2,,
 			loggrd);
 
-	fprintf(stderr,"\n RF2 starts at : %d",  RUP_GRD(pbegall(&rf2, 0) ));
 	fprintf(stderr,"\n pulsegen: generating second half of crusher pair   ... ");
+	fprintf(stderr, "start at: %d", pw_gz180crush1 + pw_rf2 + 5*myramptime + crushwait1 + crushwait2);
         TRAPEZOID(ZGRAD,
                         gz180crush2,
-			pend(&gzrf2d, "gzrf2d",0) + pw_gz180crush2a,
+			pw_gz180crush1 + pw_rf2 + 5*myramptime + crushwait1 +crushwait2,
                         0,
                         0,loggrd);
 
-	SEQLENGTH(refocus_core, t_refocus_core + textra - timessi, refocus_core);
+	fprintf(stderr, "\n Ends at : %d", 2*pw_gz180crush1 + pw_rf2 + 6*myramptime + crushwait1 + crushwait2);
+	fprintf(stderr, "\nt_refocus core length should be: %d",t_refocus_core );
+
+	SEQLENGTH(refocus_core, t_refocus_core - timessi, refocus_core);
 	getperiod(&deadtime_refocus_core, &refocus_core, 0);
 	fprintf(stderr, "\n t_refocus_core done ... \n" );
 
@@ -2249,6 +2321,7 @@ STATUS pulsegen(void)
 
 	/* LHG 1/14/13:  add an extra inversion pulse to be played before the labeling train: */
 	fprintf(stderr, "\npulsegen: generating BS0  ... ");
+	/* Note: change initial values in the future to prevent errors.  otherwise, Most initial values will be zero! */
 	EXTWAVE(RHO,
 			BS0rf,
 			RUP_RF(psd_rf_wait),
@@ -3429,6 +3502,7 @@ void doadjust(  int* trig)
 	else
 	{
 		/* turn off BS pulses during M0 frames*/
+		/* turn off BS pulses when doBS is set to 0  */
 		setiamp(0 , &BS0rf, 0);
 		setiamp(0, &gzBS0rfspoiler, 0);
 		setiamp(0 , &BS1rf, 0);
@@ -3533,6 +3607,16 @@ int doleaf(int leafn, int framen, int slicen, int* trig, int* bangn, int dabop, 
 		rf2_fraction = start_rf2/myflip_rf2 + 
 			((float)slicen/(float)opslquant) * (myflip_rf2-start_rf2) / myflip_rf2;
 	}
+	if (variable_fa==2){	
+
+		if (slicen>0)
+		{
+			rf2_fraction = start_rf2/myflip_rf2 + 
+				((float)(slicen-1)/(float)opslquant) * (myflip_rf2-start_rf2) / myflip_rf2;
+		}
+		else
+			rf2_fraction=1.0;
+	}
 	setiamp(ia_rf2 * rf2_fraction * rf_sign, &rf2, 0);
 	
 
@@ -3551,6 +3635,7 @@ int doleaf(int leafn, int framen, int slicen, int* trig, int* bangn, int dabop, 
 	setrotate((s32 *)savrot,slicen);
 	boffset(off_refocus_core);
 	startseq(slicen, MAY_PAUSE);
+
 
 	/* Incrementing the bang counter    */
 	(*bangn)++;
