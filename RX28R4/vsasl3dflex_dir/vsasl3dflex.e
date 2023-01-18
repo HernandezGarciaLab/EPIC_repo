@@ -354,7 +354,7 @@ int 	B1tag_offset;       /*frequency offset of tagging pulse*/
 int 	astseqtime;         /*duration of a single cycle of ast part of the sequence */
 int 	astseqtime2;        /*duration of the total ast part of the sequence */
 int 	t_adjust= 1500ms;           /*delay before ast pulse to make up the rest of the TR */
-int 	t_adjust_fudge = 14ms;     /* error in the t_adjust (not clear yet why) */
+int 	t_adjust_fudge = 0ms;     /* error in the t_adjust (not clear yet why) */
 int 	delta1 = 0us;       /* time between flow spoiling gradients */
 int 	isLabel=0;           /* variable used to toggle the RF */
 int 	mycontrol=0;        /* 0 = toggle RF   1= flip gradients */
@@ -1593,7 +1593,8 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 	seqtr = t_tipdown_core + (t_refocus_core + t_seqcore) * opslquant;
 
 	/* duration of the whole sequence */
-	psdseqtime = seqtr + t_tag + t_delay + AStime + textra_astcore + textra_delaycore;
+	//psdseqtime = seqtr + t_tag + t_delay + AStime + textra_astcore + textra_delaycore;
+	psdseqtime = seqtr + t_tag + t_delay + AStime ;
 
 	/* Left over time to fille the TR */
 	t_adjust = RUP_GRD(optr - psdseqtime);                 /* LHG 7.18.18 */
@@ -3460,7 +3461,6 @@ void doadjust(  int* trig)
 
 	fprintf(stderr,"\ndoadjust ...");
 	fprintf(stderr,"\nCalling tadjust_core with %d : ", t_adjust);
-	setperiod(RUP_GRD(t_adjust-timessi - t_adjust_fudge) , &tadjustcore, 0);
 
 	/* LHG 1.11.22 */
 	if (ifr>=M0frames && doBS==1)
