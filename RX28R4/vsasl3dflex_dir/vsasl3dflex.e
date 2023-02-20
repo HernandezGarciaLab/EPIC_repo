@@ -361,7 +361,7 @@ int 	mycontrol=0;        /* 0 = toggle RF   1= flip gradients */
 int 	xres=64;            /* used in place of opxres to  fix a simulation error */
 int	mrf_mode = 0;
 
-int	vsi_controlmode = 5 with {1,,,VIS, "Control Mode: (1) flip the magnitude  (2) no RF  (3) negative vel target (4) flip grads (5) no VelSel grads, (6) monopolar grads", } ;
+int	vsi_controlmode = 5 with {0,,,VIS, "Control Mode: (1) flip the magnitude  (2) no RF  (3) negative vel target (4) flip grads (5) no VelSel grads, (6) monopolar grads", } ;
 int	vsi_axis_default = 3  with {1,3,,,"indicates the velocity selection axis, 1,2,3 ---> x,y,z ",};
 int	vsi_axis = 3 ;
 int	vsi_rotax = 0 ; /* if multiple pulses, rotate the vsi_axis or leave it fixed */
@@ -404,10 +404,26 @@ int	vsi_timegap = 1150000;   /* gap between VSI pulses if we are doing mulitple 
 double 	ArtSup_Gmax = 1.5; /* default gradient max aplitude in arterial suppression pulse train */
 double 	ArtSup_B1max = 234; /* default B1 max aplitude in arterial suppressin pulse train */
 int     ArtSup_len = 6850;  /* number of points in the Arterial suppression BIR8 pulse. */
+int	toggleArtSup = 0;   /* Toggle the Arterial suppression GRADIENTS on and off */
 
 int  	multiFlipFlag = 0;  /* LHG 10.9.14 - Flag for VSI flip angle optimization  */
 int  	multiphsFlag = 0;  /* LHG 10.3.12 - Flag for phase correction optimization mode */
 int  	nfr_phs = 2; /* Number of frameas collected at each phase correction increment */
+
+/* initial values for Background suppression pulses in  pulsegen() */
+int     pwBS0rf = 2500;
+float   aBS0rf = 1.0;
+int     resBS0rf = 250;
+
+float   agzBS0rfspoiler = 0.9;
+int     pwgzBS0rfspoiler =500;
+int     pwgzBS0rfspoilera =500;
+int     pwgzBS0rfspoilerd =500;
+
+int	pwBS1rf = 5000;
+float	aBS1rf = 1.0; 
+int	resBS1rf = 500; /* the number of points in the file */
+
 
 /*LHG 10.30.18 : respiratory triggering */
 
@@ -486,12 +502,13 @@ int	BS1_time = 500000; /* delay between label and second BS inversion pulses */
 int 	BS2_time = 50000;  /* delay between first and second BS inversion pulses */
 float	rfscalesech;	/* ratio of areas: autoprescan sinc to SECH pulse */
 int	doBS = 1;	/* background suppression pulses */
-int	doArtSup = 0;	/*arterial suppression pulses */
+int	doArtSup = 0;	/*arterial suppression pulses 
+			0 means play the RF , 1 means play both RF and gradient , -1 means do nothing , 2 means play RF and absolute value of grads*/
 int	t_preBS;	/* this is the duration of the core containing the first BS pulse (beofre tagging */
 int	AStime = 50000; /* time between arterial suppression pulse and fat sat pulse */
 
 /* JS 03/15/2018: Variables for background suppresion before tagging*/
-double  area_gzBSOrfspoiler;
+/*double  area_gzBSOrfspoiler;*/
 
 /* some variables to adjust timing - leftovers from signa */
 float 	slwid180 = 1.2 with {0.0,4.0,,,"180 slice width as fraction of 90",}; /*this is so that the 180 stuff will work */
@@ -888,7 +905,7 @@ int cveval()
 	cvmax(opuser15, 0.95);
 	kmaxfrac = opuser15;
 
-	cvdesc(opuser16, "Background Suppression? (0=no, 1=yes)");
+	cvdesc(opuser16, "Background Suppression? (0=no, 1=yes, 2=Post-Readout Saturation only)");
 	cvdef(opuser16, 0);
 	opuser16 = 0;
 	cvmin(opuser16, 0.);
@@ -1150,7 +1167,7 @@ int cveval()
 	rfscalesech = 1.0;  /* Empirically on sphere phantom, I didn't get an inversion unutl 0.65) */
 
 	pw_BS1rf = 5000;
-	a_BS1rf = rfscalesech * (float)doBS ; /* the sech is used to generate a 180 */
+	a_BS1rf = rfscalesech; 
 	res_BS1rf = 2000; /* the number of points in the file */
 	res_BS1rf = 500; /* the number of points in the file */
 
@@ -1165,11 +1182,11 @@ int cveval()
         a_BS0rf = a_BS1rf;
         res_BS0rf = res_BS1rf/2;
 
-        a_gzBS0rfspoiler = 2*(float)doBS;
-        pw_gzBS0rfspoiler=3000;
-        pw_gzBS0rfspoilera=400;
-        pw_gzBS0rfspoilerd=400;
-        area_gzBSOrfspoiler = (double)(a_gzBS0rfspoiler*(pw_gzBS0rfspoiler+pw_gzBS0rfspoilera));
+        a_gzBS0rfspoiler = 0.5;
+        pw_gzBS0rfspoiler=500;
+        pw_gzBS0rfspoilera=500;
+        pw_gzBS0rfspoilerd=500;
+        /*area_gzBSOrfspoiler = (double)(a_gzBS0rfspoiler*(pw_gzBS0rfspoiler+pw_gzBS0rfspoilera));*/
 
 	/* LHG 11/15/18: in VSS and VSI, the first saturation BGS pulse is off */
 	/*
@@ -1204,6 +1221,11 @@ int cveval()
 		}
 
 	if (doBS==0){
+		BS1_time = 10000;
+		BS2_time = 10000;
+	}
+
+	if (doBS==2){
 		BS1_time = 10000;
 		BS2_time = 10000;
 	}
@@ -1343,6 +1365,10 @@ int predownload()
 	/* in some cases, we want the abs of the gradient for the control pulses (redundant code ) */
 	for (i=0; i<Npoints ; i++){
 		vsi_pulse_ctl_grad[i] = vsi_pulse_grad[i];
+
+		if (vsi_controlmode==0)
+			vsi_pulse_ctl_grad[i] = vsi_pulse_grad[i];
+
 		if (vsi_controlmode==6)
 			vsi_pulse_ctl_grad[i] = abs(vsi_pulse_grad[i]);
 	}
@@ -1594,7 +1620,7 @@ pw_rf1/2 + opte + pw_gx + daqdel + mapdel + pw_gzspoil +
 
 	/* duration of the whole sequence */
 	//psdseqtime = seqtr + t_tag + t_delay + AStime + textra_astcore + textra_delaycore;
-	psdseqtime = seqtr + t_tag + t_delay + AStime ;
+	psdseqtime = seqtr  + t_delay + AStime ;
 
 	/* Left over time to fille the TR */
 	t_adjust = RUP_GRD(optr - psdseqtime);                 /* LHG 7.18.18 */
@@ -2108,7 +2134,8 @@ STATUS pulsegen(void)
 	/*refocuser for slice select pulse*/
 	TRAPEZOID(ZGRAD,
 			gzrf1r,
-			RUP_GRD(tlead + 2*pw_gzrf1a + pw_gzrf1 + pw_gzrf1ra ),
+			/*RUP_GRD(tlead + 2*pw_gzrf1a + pw_gzrf1 + pw_gzrf1ra ),*/
+			RUP_GRD(tlead + 2*myramptime + pwrf1 + myramptime),
 			0,
 			0,loggrd);
 
@@ -2158,6 +2185,13 @@ STATUS pulsegen(void)
 
 
 	/*LHG 20.3.18: change the location of the spirals to coincide with the spin echo*/
+	readpos = RUP_GRD(opte/2.0 
+			- pw_gzrf2/2.0 - pw_gzrf2a
+			- pw_gz180crush2 - 2*pw_gz180crush2a 
+			- crushwait2
+			- FID_dur/2
+			- tlead);
+
 	daqpos = readpos;
 
 	/*waitloc = RUP_GRD(pendall(&gzphase1,0)); */
@@ -2326,29 +2360,30 @@ STATUS pulsegen(void)
 	EXTWAVE(RHO,
 			BS0rf,
 			RUP_RF(psd_rf_wait),
-			pw_BS0rf, a_BS0rf, res_BS0rf,
+			pwBS0rf, aBS0rf, resBS0rf,
 			/*/usr/g/bin/myhsec1t.rho,,loggrd);*/
 			sech_7360.rho,,loggrd);
 
 	EXTWAVE(THETA,
 			BS0rf_theta,
 			RUP_RF(psd_rf_wait),
-			pw_BS0rf, 1.0, res_BS0rf,
+			pwBS0rf, 1.0, resBS0rf,
 			/* /usr/g/bin/myhsec1t.theta,,loggrd);*/
 			sech_7360.theta,,loggrd);
 
 	TRAPEZOID(ZGRAD, 
-			gzBS0rfspoiler,
-			RUP_GRD(pendall(&BS0rf,0) +  pw_gzBS0rfspoilera),
+			gzBS0rfspoiler ,
+			/*RUP_GRD(pendall(&BS0rf,0) +  pwgzBS0rfspoilera),*/
+			pwBS0rf + pwgzBS0rfspoilera + 300,
 			0,0,loggrd);
 
 
-	t_preBS = pw_BS0rf +  pw_gzBS0rfspoiler + 2*pw_gzBS0rfspoilera +600;
+	t_preBS = pwBS0rf +  pwgzBS0rfspoiler + 2*pwgzBS0rfspoilera +600;
 
 	SEQLENGTH(preBScore, RUP_RF(t_preBS -timessi ),preBScore);
 	fprintf(stderr, " \n...  ");
 	getperiod(&deadtime_preBScore, &preBScore, 0);
-	fprintf(stderr, " \n... finisehd the BS core that goes in front of the labeling train ");
+	fprintf(stderr, " \n... finished making preBScore (first BGS pulse, just after readout) ");
 
 	/* LHG 9.27.16 Here is the VSAI tagging pulse */
 	/* VSAI labeling core */
@@ -2358,7 +2393,7 @@ STATUS pulsegen(void)
 	INTWAVE(RHO,
 			vsitag1,
 			RUP_GRD(psd_rf_wait),
-			a_vsitag1, 
+			0.0, /*a_vsitag1, */
 			vsi_train_len,
 			vsi_train_len*4,
 			vsi_pulse_mag,
@@ -2407,7 +2442,7 @@ STATUS pulsegen(void)
         INTWAVE(RHO,
                         vsictl1,
                         RUP_GRD(psd_rf_wait)  ,
-			a_vsitag1,
+			0.0, /*a_vsitag1, */
                         vsi_train_len,
 			vsi_train_len*4,
                         vsi_pulse_mag,
@@ -2450,7 +2485,8 @@ STATUS pulsegen(void)
 	/* tagging delay between tagging pulse and image acquisition */
 	/* LHG- 12/14/12 -  add the background suppression pulses (sech) */
 
-	fatsattime = pw_rf0 + 2*pw_gz0d +pw_gz0 + 2*timessi;
+	/* fatsattime = pw_rf0 + 2*pw_gz0d +pw_gz0 + 2*timessi;
+	*/
 	fuzz = 10000;
 	/*
 	   fprintf(stderr, "\npulsegen: generating PID wait with BS pulses ... ");
@@ -2474,21 +2510,21 @@ STATUS pulsegen(void)
 	fprintf(stderr, "\npulsegen: generating BS1  ... ");
 	EXTWAVE(RHO,
 			BS1rf,
-			RUP_RF(BS1_time - pw_BS1rf/2 + psd_rf_wait),
-			pw_BS1rf, a_BS1rf, res_BS1rf,
+			RUP_RF(BS1_time - pwBS1rf/2 + psd_rf_wait),
+			pwBS1rf, aBS1rf, resBS1rf,
 			/*/usr/g/bin/myhsec1t.rho,,loggrd);*/
 		sech_7360.rho,,loggrd);
 
 	EXTWAVE(THETA,
 			BS1rf_theta,
-			RUP_RF(BS1_time - pw_BS1rf/2 + psd_rf_wait),
-			pw_BS1rf, 1.0, res_BS1rf,
+			RUP_RF(BS1_time - pwBS1rf/2 + psd_rf_wait),
+			pwBS1rf, 1.0, resBS1rf,
 			/* /usr/g/bin/myhsec1t.theta,,loggrd);*/
 		sech_7360.theta,,loggrd);
 
 	fprintf(stderr," start: %d	end: %d",
-			RUP_RF(BS1_time - pw_BS1rf/2 + psd_rf_wait),
-			RUP_RF(BS1_time - pw_BS1rf/2 + pw_BS1rf  + psd_rf_wait ));
+			RUP_RF(BS1_time - pwBS1rf/2 + psd_rf_wait),
+			RUP_RF(BS1_time - pwBS1rf/2 + pwBS1rf  + psd_rf_wait ));
 	/*
 	   fprintf(stderr, "\npulsegen: generating wait between BS pulses  ... ");
 	   WAIT(SSP,
@@ -2532,7 +2568,6 @@ STATUS pulsegen(void)
 	INTWAVE(RHO,
 			ASrf_mag,
 			RUP_GRD(psd_rf_wait ),
-			/*(float)doArtSup * ArtSup_B1max/my_maxB1Seq ,     LHG 4/1/22*/
 			ArtSup_B1max/my_maxB1Seq ,
 			ArtSup_len,
 			ArtSup_len*4,
@@ -2544,7 +2579,6 @@ STATUS pulsegen(void)
         INTWAVE(THETA,
                         ASrf_theta,
 			RUP_GRD(psd_rf_wait ),
-			/* float)doArtSup,    LHG 4/1/22 */
 			1.0,
 			ArtSup_len,
 			ArtSup_len*4,
@@ -3113,9 +3147,14 @@ STATUS scancore()
 		/* LHG: 1/29/16: implementing GRAPPA along the z direction */
 		isOdd = !isOdd ;  /* the first frame (ie, when ifr == 0) is not odd */
 
-		/* alternate between control and tag after collecting field map (if field map is used)*/
-		if( ifr>1 || domap==0)
+		if( ifr>0 || domap==0)
+		{
+			/* alternate between control and tag after collecting field map (if field map is used)*/
 			isLabel = !(isLabel);
+			/* alternate arterial suppression if needed */
+			if(toggleArtSup==1) // oscillate between 0 and 1
+				doArtSup = !doArtSup;
+		}
 
 		/* calibration of the flip angles is done by incrementing the RF for each pair */
 		if (multiFlipFlag && isLabel  )
@@ -3250,6 +3289,10 @@ void doast(int* trig, int isLabel)
 	setiamp(ia_vsictl1, &vsictl1,0);
 
 	switch (vsi_controlmode){
+		case 0:
+			/* do nothing... we will not toggle this pulse.  always play the same */
+			setiamp( (int)(max_pg_iamp*(vsi_Gmax/loggrd.zfs)), &gzctl1, 0);
+			break;
 		case 1:
 			/* case 1: alternate the sign of the flip angle */
 			setiamp( -ia_vsitag1 , &vsictl1, 0);
@@ -3418,7 +3461,6 @@ void dodelay(   int* trig)
 	//setperiod(RUP_GRD(t_delay - timessi ) , &tdelaycore, 0);
 	// LHG 3.24.2022
 
-
 	if (doArtSup == 1){
 		setiamp((int)(max_pg_iamp * (ArtSup_B1max/my_maxB1Seq) ), &ASrf_mag, 0);
 		setiamp((int)(max_pg_iamp * (ArtSup_Gmax/loggrd.zfs) ), &ASrf_grad, 0);
@@ -3459,56 +3501,84 @@ void dodelay(   int* trig)
 void doadjust(  int* trig)
 {
 
-	fprintf(stderr,"\ndoadjust ...");
-	fprintf(stderr,"\nCalling tadjust_core with %d : ", t_adjust);
+	fprintf(stderr,"\ndoadjust() ...");
+	fprintf(stderr,"\nCalling tadjust_core with t_adjust = %d ", t_adjust);
+	fprintf(stderr,"\nBS0 spoiler: a_BS0rf = %f , a_gzBS0spoiler = %f ", a_BS0rf, a_gzBS0rfspoiler);
+	ia_gzBS0rfspoiler = a_gzBS0rfspoiler * max_pg_iamp/loggrd.zfs;
+	fprintf(stderr,"\nBS0 spoiler: ia_gzBS0spoiler = %d \n", ia_gzBS0rfspoiler);
+	fprintf(stderr,"\nBS1 and BS2 spoiler: a_BS1rf = %f , a_BS2rf = %f ", a_BS1rf, a_BS2rf);
 
 	/* LHG 1.11.22 */
-	if (ifr>=M0frames && doBS==1)
+	if (ifr>=M0frames)
 	{
-
-		/* turn ON  BS pulses after M0 frames*/
-		setiamp(a_gzBS0rfspoiler * max_pg_iamp/loggrd.zfs , &gzBS0rfspoiler, 0);
-		setiamp(a_BS0rf * max_pg_iamp, &BS0rf, 0);
-		setiamp(a_BS1rf * max_pg_iamp, &BS1rf, 0);
-		setiamp(a_BS2rf * max_pg_iamp, &BS2rf, 0);
-
-		/* code from PCASL sequence to adjust the R1 gain dynamically :  /
-		setwamp(SSPDS+RDC,&dynr1,0);
-		setwamp(SSPOC+RFHUBSEL,&dynr1,1);
-		setwamp(SSPD+R1IND+rgainasl-1,&dynr1,2);
-		/* reset attenuator locks 
-		if (rspent == L_SCAN)
+		if(doBS==0)
 		{
+			fprintf(stderr,"\nSetting all BS stuff to 0 ...");;
+		// dont do ANY  backsground suppression pulses 
+			setiamp(0 , &BS0rf, 0);
+			setiamp(0, &gzBS0rfspoiler, 0);
+			setiamp(0 , &BS1rf, 0);
+			setiamp(0 , &BS2rf, 0);
+		}
+		if (doBS==1)
+		{
+		// turn on ALL  the  BS pulses after M0 frames
+		// also increase the receiver gain
+			fprintf(stderr,"\nSetting all BS stuff to their values...");;
+			setiamp((int)(max_pg_iamp *(a_gzBS0rfspoiler/loggrd.zfs)) , &gzBS0rfspoiler, 0);
+			setiamp(a_BS0rf * max_pg_iamp, &BS0rf, 0);
+			setiamp(a_BS1rf * max_pg_iamp, &BS1rf, 0);
+			setiamp(a_BS2rf * max_pg_iamp, &BS2rf, 0);
+
+			/* 
+			//code from PCASL sequence to adjust the R1 gain dynamically :  
+			setwamp(SSPDS+RDC,&dynr1,0);
+			setwamp(SSPOC+RFHUBSEL,&dynr1,1);
+			setwamp(SSPD+R1IND+rgainasl-1,&dynr1,2);
+			// reset attenuator locks 
+			if (rspent == L_SCAN)
+			{
 			//setwamp(SSPDS|RDC,&dynr1,0);
 			attenlockoff(&attenuator_key);
-		}  else {
+			}  else {
 			//setwamp(SSPDS,&dynr1,0);
 			attenlockoff(&attenuator_key);
-		/*************/
+			}
+			*/
 
-		/* adjust the R1 gains after the M0 frames */
-		fprintf(stderr,"\nReturned pscR1: %d, rgainasl: %d", pscR1, rgainasl);
-		if ((int)(rgainasl + pscR1) <= 11)
-		{
-			fprintf(stderr, "\n--> Setting R1 gain to %d", rgainasl+pscR1);
-			set_dynr1(rgainasl + pscR1);
+			/* adjust the R1 gains after the M0 frames */
+			fprintf(stderr,"\nAdjusting R1 gains: prescan gain was pscR1= %d, rgainasl= %d", pscR1, rgainasl);
+			if ((int)(rgainasl + pscR1) <= 11)
+			{
+				fprintf(stderr, "\n--> Setting R1 gain to %d", rgainasl+pscR1);
+				set_dynr1(rgainasl + pscR1);
+			}
+			else
+			{
+				fprintf(stderr, "\n--> Setting R1 gain to 11 since rgainasl + pscR1 > 11");
+				set_dynr1(11);
+			}
 		}
-		else
+		if(doBS==2)
+		// crush and Reset the magnetization after the readout
+		// but dont do the background suppression pulses, though 
 		{
-			fprintf(stderr, "\n--> Setting R1 gain to 11 since rgainasl + pscR1 > 11");
-			set_dynr1(11);
+			fprintf(stderr,"\nSetting BS0 stuff to their values, BS1 and BS2 remain 0 ...");;
+			setiamp((int)(max_pg_iamp *(a_gzBS0rfspoiler/loggrd.zfs)) , &gzBS0rfspoiler, 0);
+			setiamp((int)(1.0 * max_pg_iamp), &BS0rf, 0);
+			setiamp(0 , &BS1rf, 0);
+			setiamp(0 , &BS2rf, 0);
 		}
 	}
 	else
 	{
-		/* turn off BS pulses during M0 frames*/
-		/* turn off BS pulses when doBS is set to 0  */
+		fprintf(stderr,"\nSetting all BS stuff to 0 ...");
+		// dont do ANY  backsground suppression pulses 
 		setiamp(0 , &BS0rf, 0);
 		setiamp(0, &gzBS0rfspoiler, 0);
 		setiamp(0 , &BS1rf, 0);
 		setiamp(0 , &BS2rf, 0);
-	}
-
+	}	
 	setperiod(RUP_GRD(t_adjust-timessi - t_adjust_fudge-t_preBS) , &tadjustcore, 0);
 	boffset(off_preBScore);
 	startseq(0, MAY_PAUSE);
@@ -3516,6 +3586,7 @@ void doadjust(  int* trig)
 
 	boffset(off_tadjustcore);
 	startseq(0, MAY_PAUSE);
+	fprintf(stderr,"\n... doadjust() done.");
 
 }
 
