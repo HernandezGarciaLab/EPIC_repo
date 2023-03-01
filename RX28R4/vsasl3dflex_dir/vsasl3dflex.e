@@ -500,6 +500,7 @@ int	rf_phase_cycle = 0;
 int	BStime = 0;    /* total time needed for background suppresson block */
 int	BS1_time = 500000; /* delay between label and second BS inversion pulses */
 int 	BS2_time = 50000;  /* delay between first and second BS inversion pulses */
+int	csfkiller = 0;
 float	rfscalesech;	/* ratio of areas: autoprescan sinc to SECH pulse */
 int	doBS = 1;	/* background suppression pulses */
 int	doArtSup = 0;	/*arterial suppression pulses 
@@ -1228,6 +1229,13 @@ int cveval()
 	if (doBS==2){
 		BS1_time = 10000;
 		BS2_time = 10000;
+		if (csfkiller) {
+		// this calculates the timing parameters that are "optimal"-ish for 
+		// nulling the CSF using a single VS pulse - the one used for labeling.
+		// - (not the ArtSup pulses) 
+			t_adjust = log(exp(-(1/3)*(seqtr - optr))/2 + 1/2)*3;
+			t_delay = optr - seqtr - AStime - t_adjust;
+		}
 	}
 
 	BStime = BS1_time + BS2_time + pw_BS2rf/2 ; /* + pw_BS0rf + pw_gzBS0 + 2*pw_gzBS0a; */
